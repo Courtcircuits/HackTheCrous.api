@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"regexp"
 
 	"github.com/Courtcircuits/HackTheCrous.api/types"
@@ -159,6 +160,50 @@ func (db *PostgresDatabase) DeleteUserByMail(email string) error {
 	}
 
 	return err
+}
+
+func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
+	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant`
+
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return []types.Restaurant{}, err
+	}
+	defer client.Close()
+
+	rows, err := client.Query(query)
+
+	if err != nil {
+		log.Fatalf("caught database err when querying : %q\n", err)
+		return []types.Restaurant{}, err
+	}
+
+	defer rows.Close()
+	var restaurants []types.Restaurant
+
+	for rows.Next() {
+		restaurant, err := types.ScanRestaurants(rows)
+		if err != nil {
+			log.Fatalf("caught database err when iterating through restaurants : %q\n", err)
+			return []types.Restaurant{}, err
+		}
+		restaurants = append(restaurants, restaurant)
+	}
+
+	return restaurants, nil
+}
+
+func (db *PostgresDatabase) GetSchoolOfUser(id_user int) (types.School, error) {
+	query := `SELECT s.idschool, s.name, s.coords FROM school s JOIN users u ON u.idschool = s.idschool WHERE u.iduser=$1`
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return types.School{}, err
+	}
+	defer client.Close()
+
+	return types.ScanSchool(client.QueryRow(query, id_user))
 }
 
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")

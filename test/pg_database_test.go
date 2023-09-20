@@ -56,3 +56,17 @@ func TestCreateUser(t *testing.T) {
 		t.Errorf("got %d different ID than expected %d", user_searched.ID.Int32, user.ID.Int32)
 	}
 }
+
+func TestGetRestaurants(t *testing.T) {
+	restaurants, err := storage.NewPostgresDatabase().GetRestaurants()
+
+	if err != nil {
+		t.Errorf("error while getting restaurants : %q\n", err)
+	}
+
+	if len(restaurants) == 0 {
+		t.Errorf("restaurants shouldn't be empty\n")
+	}
+
+	t.Log(restaurants)
+}

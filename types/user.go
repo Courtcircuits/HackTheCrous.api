@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Courtcircuits/HackTheCrous.api/graph/model"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
 )
 
@@ -74,4 +75,15 @@ func ScanUser(row *sql.Row) (User, error) {
 
 func (u *User) CheckPassword(given_password string) bool {
 	return util.CompareHash(u.Password.String, given_password, u.Salt.String)
+}
+
+func (u User) ToGraphQL() *model.User {
+	ID := int(u.ID.Int32)
+	return &model.User{
+		Iduser: &ID,
+		Name:   &u.Name.String,
+		Mail:   &u.Email.String,
+		Ical:   &u.Ical.String,
+		Nonce:  &u.Nonce.Valid,
+	}
 }

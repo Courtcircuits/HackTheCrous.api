@@ -6,28 +6,55 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/Courtcircuits/HackTheCrous.api/storage"
 	"github.com/Courtcircuits/HackTheCrous.api/types"
+	"github.com/Courtcircuits/HackTheCrous.api/util"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
+var server *Server
+
 type Server struct {
-	listenAddr string
-	router     *gin.Engine
-	store      storage.PostgresDatabase
+	listenAddr     string
+	router         *gin.Engine
+	graphqlHandler *handler.Server
+	Store          storage.PostgresDatabase
 }
 
-func NewServer(listenAddr string, store storage.PostgresDatabase) *Server {
-	return &Server{
-		listenAddr: listenAddr,
-		store:      store,
-		router:     gin.Default(),
+func GetServer() *Server {
+	return server
+}
+
+func NewServer(listenAddr string, store storage.PostgresDatabase, h *handler.Server) *Server {
+	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{util.Get("CLIENT_URL")}
+	config.AllowMethods = []string{"GET", "POST"}
+	config.AllowHeaders = []string{"Authorization", "Content-Type", "Origin"}
+
+	r.Use(cors.New(config))
+
+	server = &Server{
+		listenAddr:     listenAddr,
+		Store:          store,
+		router:         r,
+		graphqlHandler: h,
 	}
+
+	return server
 }
 
 func (s *Server) Start() error {
+	critical_route := s.router.Group("/")
+	critical_route.Use(JWTAuth())
+	critical_route.Use(GinContextMiddleware())
+
 	s.router.POST("/login", s.Login)
 	s.router.POST("/signup", s.Signup)
+	critical_route.POST("/graphql", s.GraphQLHandler)
 
 	s.router.Run(s.listenAddr)
 	return http.ListenAndServe(s.listenAddr, nil)
@@ -47,7 +74,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := s.store.GetUserByEmail(credentials.Mail)
+	user, err := s.Store.GetUserByEmail(credentials.Mail)
 
 	log.Printf("user auth_token : %q\n", user.Auth_token.String)
 
@@ -65,16 +92,20 @@ func (s *Server) Login(c *gin.Context) {
 
 	user.Auth_token = sql.NullString{String: tokens.Auth_token, Valid: true}
 
-	if err == types.ErrRefreshTokenNeedUpdate {
-		refresh_token := s.store.UpdateRefreshToken(int(user.ID.Int32))
+	if err == types.ErrRefreshTokenNeedUpdate && credentials.Remember {
+		refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
 		user.Refresh_token = sql.NullString{String: refresh_token, Valid: true} //not gonna lie, this conversion seems wrong
 	} else if err != nil {
 		c.AbortWithStatus(401)
 		return
 	}
 
-	fmt.Println(user.Auth_token)
-	fmt.Println(user.Refresh_token)
+	if !credentials.Remember {
+		user.Refresh_token = sql.NullString{
+			String: "",
+			Valid:  false,
+		}
+	}
 
 	c.JSON(200, gin.H{
 		"type":         "success",
@@ -83,6 +114,11 @@ func (s *Server) Login(c *gin.Context) {
 		"refreshToken": user.Refresh_token.String,
 		"mail":         user.Email.String,
 	})
+}
+
+func (s *Server) GraphQLHandler(c *gin.Context) {
+
+	s.graphqlHandler.ServeHTTP(c.Writer, c.Request)
 }
 
 func (s *Server) Signup(c *gin.Context) {
@@ -119,7 +155,7 @@ func (s *Server) Signup(c *gin.Context) {
 	if err != nil {
 		log.Printf("error caught : %q", err)
 		if err == types.ErrRefreshTokenNeedUpdate {
-			refresh_token := s.store.UpdateRefreshToken(int(user.ID.Int32))
+			refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
 			user.Refresh_token = sql.NullString{String: refresh_token, Valid: true}
 		} else {
 			c.AbortWithStatus(500)

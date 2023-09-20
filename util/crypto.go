@@ -67,7 +67,7 @@ func GenJWT(expiration time.Time, payload map[string]any) string {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = expiration
+	claims["exp"] = expiration.Unix()
 	for key, val := range payload {
 		claims[key] = val
 	}
@@ -90,7 +90,7 @@ func VerifyJWT(raw_token string) (map[string]any, error) {
 		if !ok {
 			return map[string]any{
 				"error": "Unauthorized",
-			}, errors.New("Unauthorized")
+			}, errors.New("unauthorized")
 		}
 		return []byte(Get("JWT_SECRET")), nil
 	})
