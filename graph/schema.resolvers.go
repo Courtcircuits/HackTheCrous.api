@@ -63,7 +63,6 @@ func (r *queryResolver) Restaurants(ctx context.Context) ([]*model.Restaurant, e
 
 	for _, restaurant := range db_restaurants {
 		restaurants = append(restaurants, restaurant.ToGraphQL())
-		log.Println(restaurant)
 	}
 
 	return restaurants, nil
@@ -130,7 +129,15 @@ func (r *queryResolver) GetLatestMails(ctx context.Context, rangeArg *int) ([]*m
 
 // Meals is the resolver for the meals field.
 func (r *restaurantResolver) Meals(ctx context.Context, obj *model.Restaurant) ([]*model.Meal, error) {
-	panic(fmt.Errorf("not implemented: Meals - meals"))
+	meals, err := api.GetServer().Store.GetMealsFromRestaurant(*obj.Idrestaurant)
+
+	var meals_gql []*model.Meal
+
+	for _, meal := range meals {
+		meals_gql = append(meals_gql, meal.ToGraphQL())
+	}
+
+	return meals_gql, err
 }
 
 // Distance is the resolver for the distance field.

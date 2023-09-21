@@ -206,5 +206,31 @@ func (db *PostgresDatabase) GetSchoolOfUser(id_user int) (types.School, error) {
 	return types.ScanSchool(client.QueryRow(query, id_user))
 }
 
+func (db *PostgresDatabase) GetMealsFromRestaurant(id_restaurant int) ([]types.Meal, error) {
+	query := `SELECT idmeal, typemeal, foodies, day FROM meal WHERE idrestaurant=$1`
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return []types.Meal{}, err
+	}
+	defer client.Close()
+	rows, err := client.Query(query, id_restaurant)
+	if err != nil {
+		log.Fatalf("caught database er when querying : %q\n", err)
+	}
+	defer rows.Close()
+	var meals []types.Meal
+
+	for rows.Next() {
+		meal, err := types.ScanMeals(rows)
+		if err != nil {
+			log.Fatalf("caught database err when iterating through meals : %q\n", err)
+			return []types.Meal{}, err
+		}
+		meals = append(meals, meal)
+	}
+	return meals, nil
+}
+
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")
 var ErrShortPassword = errors.New("password must be 6 characters long")
