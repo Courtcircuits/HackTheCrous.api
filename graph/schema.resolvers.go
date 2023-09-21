@@ -49,7 +49,8 @@ func (r *mutationResolver) ModifyUserField(ctx context.Context, name *string, ic
 
 // Restaurant is the resolver for the restaurant field.
 func (r *queryResolver) Restaurant(ctx context.Context, url *string) (*model.Restaurant, error) {
-	panic(fmt.Errorf("not implemented: Restaurant - restaurant"))
+	restaurant, err := api.GetServer().Store.GetRestaurantByUrl(*url)
+	return restaurant.ToGraphQL(), err
 }
 
 // Restaurants is the resolver for the restaurants field.

@@ -194,6 +194,21 @@ func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
 	return restaurants, nil
 }
 
+func (db *PostgresDatabase) GetRestaurantByUrl(url string) (types.Restaurant, error) {
+	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant WHERE url=$1`
+
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return types.Restaurant{}, err
+	}
+	defer client.Close()
+
+	row := client.QueryRow(query, url)
+
+	return types.ScanRestaurant(row)
+}
+
 func (db *PostgresDatabase) GetSchoolOfUser(id_user int) (types.School, error) {
 	query := `SELECT s.idschool, s.name, s.coords FROM school s JOIN users u ON u.idschool = s.idschool WHERE u.iduser=$1`
 	client, err := db.Connect()
