@@ -17,7 +17,7 @@ const (
 	DINER         Period = "Dîner"
 )
 
-type Foods []struct {
+type Foods struct {
 	Food []string `json:"food"`
 	Type string   `json:"type"`
 }
@@ -25,12 +25,12 @@ type Foods []struct {
 type Meal struct {
 	ID      int
 	Type    Period
-	Foodies Foods
+	Foodies []Foods
 	Day     time.Time
 }
 
-func ParseFoods(foodies string) (Foods, error) {
-	var foods Foods
+func ParseFoods(foodies string) ([]Foods, error) {
+	var foods []Foods
 	err := json.Unmarshal([]byte(foodies), &foods)
 	return foods, err
 }
@@ -80,17 +80,30 @@ func ScanMeals(rows *sql.Rows) (Meal, error) {
 	}, err
 }
 
-func (m Meal) ToGraphQL() *model.Meal {
-	stringifiedFoodies, err := m.Foodies.Stringify()
-	if err != nil {
-		log.Fatal(err)
+func (f Foods) ToGraphQL() *model.Food {
+	names := make([]*string, len(f.Food))
+	for i := 0; i < len(f.Food); i++ {
+		names[i] = &f.Food[i]
 	}
+	return &model.Food{
+		Names:    names,
+		Category: &f.Type,
+	}
+}
+
+func (m Meal) ToGraphQL() *model.Meal {
 	stringifiedDate := m.Day.Format(time.RFC3339Nano)
+
+	foodies_gql := make([]*model.Food, len(m.Foodies))
+
+	for i := 0; i < len(m.Foodies); i++ {
+		foodies_gql = append(foodies_gql, m.Foodies[i].ToGraphQL())
+	}
 
 	return &model.Meal{
 		Idmeal:   &m.ID,
 		Typemeal: (*string)(&m.Type),
-		Foodies:  &stringifiedFoodies,
+		Foodies:  foodies_gql,
 		Day:      &stringifiedDate,
 	}
 }

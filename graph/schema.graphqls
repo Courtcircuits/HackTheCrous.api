@@ -48,13 +48,12 @@ type Restaurant {
   meals: [Meal]
   coords: Coordinates
   distance: Float
-  food: [Food]
 }
 
 type Meal {
   idmeal: Int
   typemeal: String
-  foodies: JSON
+  foodies: [Food]
   day: String
 }
 
@@ -87,9 +86,8 @@ type PlanningDay {
   description: String
 }
 type Food {
-  name: String
+  names: [String]
   category: String
-  period: String
 }
 type Mail {
   from: String

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"strings"
 
+	"github.com/Courtcircuits/HackTheCrous.api/storage/pg_util"
 	"github.com/Courtcircuits/HackTheCrous.api/types"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
 	_ "github.com/lib/pq"
@@ -172,26 +174,7 @@ func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
 	}
 	defer client.Close()
 
-	rows, err := client.Query(query)
-
-	if err != nil {
-		log.Fatalf("caught database err when querying : %q\n", err)
-		return []types.Restaurant{}, err
-	}
-
-	defer rows.Close()
-	var restaurants []types.Restaurant
-
-	for rows.Next() {
-		restaurant, err := types.ScanRestaurants(rows)
-		if err != nil {
-			log.Fatalf("caught database err when iterating through restaurants : %q\n", err)
-			return []types.Restaurant{}, err
-		}
-		restaurants = append(restaurants, restaurant)
-	}
-
-	return restaurants, nil
+	return pg_util.QueryRestaurants(client, query)
 }
 
 func (db *PostgresDatabase) GetRestaurantByUrl(url string) (types.Restaurant, error) {
@@ -207,6 +190,23 @@ func (db *PostgresDatabase) GetRestaurantByUrl(url string) (types.Restaurant, er
 	row := client.QueryRow(query, url)
 
 	return types.ScanRestaurant(row)
+}
+
+func (db *PostgresDatabase) SearchRestaurant(query string) ([]types.Restaurant, error) {
+	sql_query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant
+WHERE idrestaurant IN (SELECT r.idrestaurant FROM restaurant r JOIN suggestions_restaurant sr ON sr.idrestaurant=r.idrestaurant WHERE UPPER(sr.keyword) LIKE $1)`
+
+	query = "%" + strings.ToUpper(query) + "%"
+	log.Println(query)
+
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return []types.Restaurant{}, err
+	}
+	defer client.Close()
+
+	return pg_util.QueryRestaurants(client, sql_query, query)
 }
 
 func (db *PostgresDatabase) GetSchoolOfUser(id_user int) (types.School, error) {

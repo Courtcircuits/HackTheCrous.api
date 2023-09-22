@@ -69,9 +69,21 @@ func (r *queryResolver) Restaurants(ctx context.Context) ([]*model.Restaurant, e
 	return restaurants, nil
 }
 
-// Search is the resolver for the search field.
+// Search is the resolver for the search query
+// this query retrieves a set of restaurants that contains a specific meal (I guess)
 func (r *queryResolver) Search(ctx context.Context, query *string) ([]*model.Restaurant, error) {
-	panic(fmt.Errorf("not implemented: Search - search"))
+	var restaurants []*model.Restaurant
+	db_restaurants, err := api.GetServer().Store.SearchRestaurant(*query)
+	if err != nil {
+		log.Fatalf("error while getting restaurants in the resolver : %q\n", err)
+		return []*model.Restaurant{}, errors.New("500, error while getting restaurants")
+	}
+
+	for _, restaurant := range db_restaurants {
+		restaurants = append(restaurants, restaurant.ToGraphQL())
+	}
+
+	return restaurants, nil
 }
 
 // User is the resolver for the user field.

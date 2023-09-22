@@ -14,9 +14,8 @@ type Coordinates struct {
 }
 
 type Food struct {
-	Name     *string `json:"name,omitempty"`
-	Category *string `json:"category,omitempty"`
-	Period   *string `json:"period,omitempty"`
+	Names    []*string `json:"names,omitempty"`
+	Category *string   `json:"category,omitempty"`
 }
 
 type Mail struct {
@@ -33,7 +32,7 @@ type Mail struct {
 type Meal struct {
 	Idmeal   *int    `json:"idmeal,omitempty"`
 	Typemeal *string `json:"typemeal,omitempty"`
-	Foodies  *string `json:"foodies,omitempty"`
+	Foodies  []*Food `json:"foodies,omitempty"`
 	Day      *string `json:"day,omitempty"`
 }
 
@@ -52,7 +51,6 @@ type Restaurant struct {
 	Meals        []*Meal      `json:"meals,omitempty"`
 	Coords       *Coordinates `json:"coords,omitempty"`
 	Distance     *float64     `json:"distance,omitempty"`
-	Food         []*Food      `json:"food,omitempty"`
 }
 
 type School struct {

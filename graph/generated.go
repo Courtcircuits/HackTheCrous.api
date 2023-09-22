@@ -60,8 +60,7 @@ type ComplexityRoot struct {
 
 	Food struct {
 		Category func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Period   func(childComplexity int) int
+		Names    func(childComplexity int) int
 	}
 
 	Mail struct {
@@ -117,7 +116,6 @@ type ComplexityRoot struct {
 	Restaurant struct {
 		Coords       func(childComplexity int) int
 		Distance     func(childComplexity int) int
-		Food         func(childComplexity int) int
 		Idrestaurant func(childComplexity int) int
 		Meals        func(childComplexity int) int
 		Name         func(childComplexity int) int
@@ -226,19 +224,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Food.Category(childComplexity), true
 
-	case "Food.name":
-		if e.complexity.Food.Name == nil {
+	case "Food.names":
+		if e.complexity.Food.Names == nil {
 			break
 		}
 
-		return e.complexity.Food.Name(childComplexity), true
-
-	case "Food.period":
-		if e.complexity.Food.Period == nil {
-			break
-		}
-
-		return e.complexity.Food.Period(childComplexity), true
+		return e.complexity.Food.Names(childComplexity), true
 
 	case "Mail.cc":
 		if e.complexity.Mail.Cc == nil {
@@ -573,13 +564,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Restaurant.Distance(childComplexity), true
-
-	case "Restaurant.food":
-		if e.complexity.Restaurant.Food == nil {
-			break
-		}
-
-		return e.complexity.Restaurant.Food(childComplexity), true
 
 	case "Restaurant.idrestaurant":
 		if e.complexity.Restaurant.Idrestaurant == nil {
@@ -1384,8 +1368,8 @@ func (ec *executionContext) fieldContext_Coordinates_y(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Food_name(ctx context.Context, field graphql.CollectedField, obj *model.Food) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Food_name(ctx, field)
+func (ec *executionContext) _Food_names(ctx context.Context, field graphql.CollectedField, obj *model.Food) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Food_names(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1398,7 +1382,7 @@ func (ec *executionContext) _Food_name(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.Names, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1407,12 +1391,12 @@ func (ec *executionContext) _Food_name(ctx context.Context, field graphql.Collec
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Food_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Food_names(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Food",
 		Field:      field,
@@ -1454,47 +1438,6 @@ func (ec *executionContext) _Food_category(ctx context.Context, field graphql.Co
 }
 
 func (ec *executionContext) fieldContext_Food_category(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Food",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Food_period(ctx context.Context, field graphql.CollectedField, obj *model.Food) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Food_period(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Period, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Food_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Food",
 		Field:      field,
@@ -1940,9 +1883,9 @@ func (ec *executionContext) _Meal_foodies(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model.Food)
 	fc.Result = res
-	return ec.marshalOJSON2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOFood2ᚕᚖgithubᚗcomᚋCourtcircuitsᚋHackTheCrousᚗapiᚋgraphᚋmodelᚐFood(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Meal_foodies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1952,7 +1895,13 @@ func (ec *executionContext) fieldContext_Meal_foodies(ctx context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type JSON does not have child fields")
+			switch field.Name {
+			case "names":
+				return ec.fieldContext_Food_names(ctx, field)
+			case "category":
+				return ec.fieldContext_Food_category(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Food", field.Name)
 		},
 	}
 	return fc, nil
@@ -2243,8 +2192,6 @@ func (ec *executionContext) fieldContext_Mutation_like(ctx context.Context, fiel
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2311,8 +2258,6 @@ func (ec *executionContext) fieldContext_Mutation_dislike(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2652,8 +2597,6 @@ func (ec *executionContext) fieldContext_Query_restaurant(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2720,8 +2663,6 @@ func (ec *executionContext) fieldContext_Query_restaurants(ctx context.Context, 
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2777,8 +2718,6 @@ func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2913,8 +2852,6 @@ func (ec *executionContext) fieldContext_Query_searchRestaurant(ctx context.Cont
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -3041,8 +2978,6 @@ func (ec *executionContext) fieldContext_Query_searchFood(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -3762,55 +3697,6 @@ func (ec *executionContext) fieldContext_Restaurant_distance(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Restaurant_food(ctx context.Context, field graphql.CollectedField, obj *model.Restaurant) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Restaurant_food(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Food, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Food)
-	fc.Result = res
-	return ec.marshalOFood2ᚕᚖgithubᚗcomᚋCourtcircuitsᚋHackTheCrousᚗapiᚋgraphᚋmodelᚐFood(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Restaurant_food(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Restaurant",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_Food_name(ctx, field)
-			case "category":
-				return ec.fieldContext_Food_category(ctx, field)
-			case "period":
-				return ec.fieldContext_Food_period(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Food", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _School_idschool(ctx context.Context, field graphql.CollectedField, obj *model.School) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_School_idschool(ctx, field)
 	if err != nil {
@@ -4242,8 +4128,6 @@ func (ec *executionContext) fieldContext_User_favorites(ctx context.Context, fie
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
-			case "food":
-				return ec.fieldContext_Restaurant_food(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -6121,12 +6005,10 @@ func (ec *executionContext) _Food(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Food")
-		case "name":
-			out.Values[i] = ec._Food_name(ctx, field, obj)
+		case "names":
+			out.Values[i] = ec._Food_names(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._Food_category(ctx, field, obj)
-		case "period":
-			out.Values[i] = ec._Food_period(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6715,8 +6597,6 @@ func (ec *executionContext) _Restaurant(ctx context.Context, sel ast.SelectionSe
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "food":
-			out.Values[i] = ec._Restaurant_food(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7595,22 +7475,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	res := graphql.MarshalInt(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOJSON2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOJSON2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalString(*v)
 	return res
 }
 
