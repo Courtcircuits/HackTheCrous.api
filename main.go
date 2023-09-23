@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	defaultPort := util.Get("PORT")
+	defaultPort := ":" + util.Get("PORT")
 	listenAddr := flag.String("listenaddr", defaultPort, "server listen address")
 	flag.Parse()
 
