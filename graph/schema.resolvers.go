@@ -42,7 +42,7 @@ func (r *mutationResolver) Dislike(ctx context.Context, idrestaurant *int) ([]*m
 	panic(fmt.Errorf("not implemented: Dislike - dislike"))
 }
 
-// ModifyUserField is the resolver for the modifyUserField field.
+// ModifyUserField is the re solver for the modifyUserField field.
 func (r *mutationResolver) ModifyUserField(ctx context.Context, name *string, ical *string, school *string, mail *string) (*model.User, error) {
 	panic(fmt.Errorf("not implemented: ModifyUserField - modifyUserField"))
 }
@@ -102,16 +102,37 @@ func (r *queryResolver) User(ctx context.Context, iduser *int) (*model.User, err
 
 // SearchRestaurant is the resolver for the searchRestaurant field.
 func (r *queryResolver) SearchRestaurant(ctx context.Context, query *string) ([]*model.Restaurant, error) {
-	panic(fmt.Errorf("not implemented: SearchRestaurant - searchRestaurant"))
+	var restaurants []*model.Restaurant
+	db_restaurants, err := api.GetServer().Store.SearchRestaurantByName(*query)
+	if err != nil {
+		log.Fatalf("error while getting restaurants in the resolver : %q\n", err)
+		return []*model.Restaurant{}, errors.New("500, error while getting restaurants")
+	}
+
+	for _, restaurant := range db_restaurants {
+		restaurants = append(restaurants, restaurant.ToGraphQL())
+	}
+
+	return restaurants, nil
 }
 
 // SearchSchool is the resolver for the searchSchool field.
 func (r *queryResolver) SearchSchool(ctx context.Context, query *string) ([]*model.School, error) {
-	panic(fmt.Errorf("not implemented: SearchSchool - searchSchool"))
+	var schools []*model.School
+	db_schools, err := api.GetServer().Store.SearchSchoolByName(*query)
+	if err != nil {
+		log.Fatalf("error while getting restaurants in the resolver : %q\n", err)
+		return []*model.School{}, errors.New("500, error while getting restaurants")
+	}
+	for _, school := range db_schools {
+		schools = append(schools, school.ToGraphQL())
+	}
+	return schools, nil
 }
 
 // SearchFood is the resolver for the searchFood field.
 func (r *queryResolver) SearchFood(ctx context.Context, query *string) ([]*model.Restaurant, error) {
+	//useless to remove from doc i guess
 	panic(fmt.Errorf("not implemented: SearchFood - searchFood"))
 }
 
