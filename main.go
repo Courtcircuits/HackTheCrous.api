@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 
 	// http.HandleFunc("/user", s.handleGetUserByID)
 
@@ -14,17 +12,13 @@ import (
 )
 
 func main() {
-	defaultPort := ":" + util.Get("PORT")
-	listenAddr := flag.String("listenaddr", defaultPort, "server listen address")
-	flag.Parse()
-
-	fmt.Println("Starting server on port", *listenAddr)
+	port := util.Get("PORT")
 
 	storage := storage.NewPostgresDatabase()
 	h := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{},
 	}))
 
-	server := api.NewServer(*listenAddr, *storage, h)
+	server := api.NewServer(":"+port, *storage, h)
 	server.Start()
 }
