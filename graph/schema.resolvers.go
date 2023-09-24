@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"time"
 
 	"github.com/Courtcircuits/HackTheCrous.api/api"
 	"github.com/Courtcircuits/HackTheCrous.api/graph/model"
@@ -148,7 +149,25 @@ func (r *queryResolver) Today(ctx context.Context) ([]*model.PlanningDay, error)
 
 // Period is the resolver for the period field.
 func (r *queryResolver) Period(ctx context.Context, start *string, end *string) ([]*model.PlanningDay, error) {
-	panic(fmt.Errorf("not implemented: Period - period"))
+	gc, err := api.GetGinContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id := gc.GetInt("id")
+
+	cal, err := api.GetServer().Store.GetCalendarOfUser(id)
+	if err != nil {
+		return nil, err
+	}
+	start_date, err := time.Parse("02-Jan-2006", *start)
+	if err != nil {
+		return nil, err
+	}
+	end_date, err := time.Parse("02-Jan-2006", *end)
+	if err != nil {
+		return nil, err
+	}
+	return cal.GetPeriod(start_date, end_date)
 }
 
 // GetLatestMail is the resolver for the getLatestMail field.

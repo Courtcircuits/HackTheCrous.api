@@ -5,13 +5,17 @@ go 1.20
 require (
 	github.com/99designs/gqlgen v0.17.37
 	github.com/lib/pq v1.10.9
+	github.com/redis/go-redis/v9 v9.2.0
 	github.com/spf13/viper v1.16.0
 	github.com/vektah/gqlparser/v2 v2.5.9
 )
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/arran4/golang-ical v0.1.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/frankban/quicktest v1.14.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect

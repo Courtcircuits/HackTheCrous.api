@@ -276,5 +276,23 @@ func (db *PostgresDatabase) GetMealsFromRestaurant(id_restaurant int) ([]types.M
 	return meals, nil
 }
 
+func (db *PostgresDatabase) GetCalendarOfUser(id_user int) (*types.Calendar, error) {
+	query := `SELECT ical FROM users WHERE iduser=$1`
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %v\n", err)
+		return nil, err
+	}
+	defer client.Close()
+	var ical string
+	row := client.QueryRow(query, id_user)
+	err = row.Scan(&ical)
+	if err != nil {
+		log.Fatalf("caught error while scanning ical : %v\n", err)
+	}
+	cal, err := types.NewCalendar(ical)
+	return &cal, err
+}
+
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")
 var ErrShortPassword = errors.New("password must be 6 characters long")
