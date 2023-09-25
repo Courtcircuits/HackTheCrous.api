@@ -177,6 +177,21 @@ func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
 	return pg_util.QueryRestaurants(client, query)
 }
 
+func (db *PostgresDatabase) GetRestaurant(id_restaurant int) (types.Restaurant, error) {
+	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant WHERE idrestaurant=$1`
+
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return types.Restaurant{}, err
+	}
+	defer client.Close()
+
+	row := client.QueryRow(query, id_restaurant)
+
+	return types.ScanRestaurant(row)
+}
+
 func (db *PostgresDatabase) GetRestaurantByUrl(url string) (types.Restaurant, error) {
 	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant WHERE url=$1`
 
@@ -276,12 +291,24 @@ func (db *PostgresDatabase) GetMealsFromRestaurant(id_restaurant int) ([]types.M
 	return meals, nil
 }
 
-func (db *PostgresDatabase) GetCalendarOfUser(id_user int) (*types.Calendar, error) {
+func (db *PostgresDatabase) GetFavoriteRestaurants(id_user int) ([]types.Restaurant, error) {
+	query := `SELECT r.idrestaurant, r.name, r.url, r.gpscoord FROM restaurant r JOIN favoriterestaurant fr ON fr.idrestaurant = r.idrestaurant WHERE fr.iduser=$1`
+
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %q\n", err)
+		return []types.Restaurant{}, err
+	}
+	defer client.Close()
+	return pg_util.QueryRestaurants(client, query, id_user)
+}
+
+func (db *PostgresDatabase) GetCalendarOfUser(id_user int) (string, error) {
 	query := `SELECT ical FROM users WHERE iduser=$1`
 	client, err := db.Connect()
 	if err != nil {
 		log.Fatalf("caught database err when opening : %v\n", err)
-		return nil, err
+		return "", err
 	}
 	defer client.Close()
 	var ical string
@@ -290,8 +317,30 @@ func (db *PostgresDatabase) GetCalendarOfUser(id_user int) (*types.Calendar, err
 	if err != nil {
 		log.Fatalf("caught error while scanning ical : %v\n", err)
 	}
-	cal, err := types.NewCalendar(ical)
-	return &cal, err
+	return ical, err
+}
+
+func (db *PostgresDatabase) AddRestaurantAsFavorite(id_user int, id_restaurant int) error {
+	query := `INSERT INTO favoriterestaurant(idrestaurant, iduser) VALUES($1, $2)`
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %v\n", err)
+		return err
+	}
+	defer client.Close()
+	_, err = client.Exec(query, id_restaurant, id_user)
+	return err
+}
+func (db *PostgresDatabase) DeleteRestaurantFromFavorite(id_user int, id_restaurant int) error {
+	query := `DELETE FROM favoriterestaurant WHERE idrestaurant=$1 AND iduser=$2`
+	client, err := db.Connect()
+	if err != nil {
+		log.Fatalf("caught database err when opening : %v\n", err)
+		return err
+	}
+	defer client.Close()
+	_, err = client.Exec(query, id_restaurant, id_user)
+	return err
 }
 
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")

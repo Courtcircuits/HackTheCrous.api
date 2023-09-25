@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Courtcircuits/HackTheCrous.api/types"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
 	"github.com/redis/go-redis/v9"
 )
@@ -35,4 +36,19 @@ func (c *RedisCache) Set(key string, val string, exp time.Duration) error {
 		return fmt.Errorf("redis error : %q", jsp)
 	}
 	return nil
+}
+
+func (c *RedisCache) SetCalendarAsync(cal types.Calendar) {
+	cal_json, err := cal.ToMap()
+	if err != nil {
+		panic(err)
+	}
+	cal_stringified, err := types.JsonCalendarToString(cal_json)
+	if err != nil {
+		panic(err) //can be enhanced by using channels to return errors
+	}
+	err = c.Set(cal.Url, cal_stringified, time.Hour)
+	if err != nil {
+		panic(err)
+	}
 }

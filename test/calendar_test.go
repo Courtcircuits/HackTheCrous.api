@@ -6,6 +6,8 @@ import (
 
 	"github.com/Courtcircuits/HackTheCrous.api/types"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/maps"
 )
 
 func TestGetPeriod(t *testing.T) {
@@ -22,4 +24,37 @@ func TestGetPeriod(t *testing.T) {
 	if len(period) != 8 {
 		t.Fatalf("period should contain %d, but contains %d\n", 8, len(period))
 	}
+}
+
+func TestSerializationMap(t *testing.T) {
+	whatever := "whatever"
+	now := time.Now()
+	test_map := types.JsonCalendar{
+		now: {{
+			Start:       &whatever,
+			End:         &whatever,
+			Summary:     &whatever,
+			Location:    &whatever,
+			Description: &whatever,
+		}},
+	}
+
+	val, err := types.JsonCalendarToString(&test_map)
+	if err != nil {
+		t.Errorf("caught an unexpected error : %v\n", err)
+	}
+	if val == "" {
+		t.Errorf("returned empty string")
+	}
+
+	map_parsed, err := types.ParseJsonCalendar(val)
+
+	if err != nil {
+		t.Errorf("caught an unexpected error : %v\n", err)
+	}
+
+	test_map_day := *maps.Values(test_map)[0][0]
+	map_parsed_day := *maps.Values(map_parsed)[0][0]
+
+	assert.Equal(t, test_map_day, map_parsed_day)
 }

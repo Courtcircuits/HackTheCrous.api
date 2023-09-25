@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -9,9 +10,26 @@ import (
 	ics "github.com/arran4/golang-ical"
 )
 
+type JsonCalendar map[time.Time][]*model.PlanningDay
+
 type Calendar struct {
 	Url      string
 	Calendar *ics.Calendar
+	Json     *JsonCalendar
+}
+
+func JsonCalendarToString(_map *JsonCalendar) (string, error) {
+	stringified, err := json.Marshal(*_map)
+	if err != nil {
+		return "", err
+	}
+	return string(stringified), nil
+}
+
+func ParseJsonCalendar(_string string) (JsonCalendar, error) {
+	var json_calendar JsonCalendar
+	err := json.Unmarshal([]byte(_string), &json_calendar)
+	return json_calendar, err
 }
 
 func NewCalendar(url string) (Calendar, error) {
@@ -19,11 +37,20 @@ func NewCalendar(url string) (Calendar, error) {
 	return Calendar{
 		Url:      url,
 		Calendar: cal,
+		Json:     nil,
 	}, err
 }
 
-func (cal *Calendar) ToMap() (map[time.Time][]*model.PlanningDay, error) {
-	evs_timestamped := make(map[time.Time][]*model.PlanningDay)
+func NewCalendarFromJsonCalendar(json *JsonCalendar) Calendar {
+	return Calendar{
+		Url:      "",
+		Calendar: nil,
+		Json:     json,
+	}
+}
+
+func (cal *Calendar) ToMap() (*JsonCalendar, error) {
+	evs_timestamped := make(JsonCalendar)
 	evs := cal.Calendar.Events()
 	for _, ev := range evs {
 		start, err := ev.GetStartAt()
@@ -42,7 +69,7 @@ func (cal *Calendar) ToMap() (map[time.Time][]*model.PlanningDay, error) {
 		}
 		evs_timestamped[start_date] = append(evs_timestamped[start_date], ev_planningday)
 	}
-	return evs_timestamped, nil
+	return &evs_timestamped, nil
 }
 
 var ErrUrlIcalUndefined = errors.New("your ical ur is not defined")
@@ -69,10 +96,10 @@ func VEventToPlanningDay(vevent ics.VEvent) (*model.PlanningDay, error) {
 }
 
 func (cal *Calendar) GetPeriod(start time.Time, end time.Time) ([]*model.PlanningDay, error) {
-	if cal.Url == "" {
-		return nil, ErrUrlIcalUndefined
+	var err error
+	if cal.Json == nil {
+		cal.Json, err = cal.ToMap()
 	}
-	evs, err := cal.ToMap()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +107,7 @@ func (cal *Calendar) GetPeriod(start time.Time, end time.Time) ([]*model.Plannin
 	var planning_days []*model.PlanningDay
 
 	for i := start; i.Before(end); i = i.Add(time.Hour * 24) {
-		planning_days = append(planning_days, evs[i]...)
+		planning_days = append(planning_days, (*cal.Json)[i]...)
 	}
 
 	return planning_days, nil

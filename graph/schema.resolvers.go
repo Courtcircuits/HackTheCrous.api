@@ -15,7 +15,9 @@ import (
 
 	"github.com/Courtcircuits/HackTheCrous.api/api"
 	"github.com/Courtcircuits/HackTheCrous.api/graph/model"
+	"github.com/Courtcircuits/HackTheCrous.api/types"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
+	"github.com/redis/go-redis/v9"
 )
 
 // CreateSchool is the resolver for the createSchool field.
@@ -35,12 +37,34 @@ func (r *mutationResolver) ModifyUserBySchoolName(ctx context.Context, name *str
 
 // Like is the resolver for the like field.
 func (r *mutationResolver) Like(ctx context.Context, idrestaurant *int) ([]*model.Restaurant, error) {
-	panic(fmt.Errorf("not implemented: Like - like"))
+	gc, err := api.GetGinContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id_user := gc.GetInt("id")
+	go api.GetServer().Store.AddRestaurantAsFavorite(id_user, *idrestaurant)
+	restaurants, err := api.GetServer().Store.GetFavoriteRestaurants(id_user)
+	var restaurants_gql []*model.Restaurant
+	for _, resto := range restaurants {
+		restaurants_gql = append(restaurants_gql, resto.ToGraphQL())
+	}
+	return restaurants_gql, err
 }
 
 // Dislike is the resolver for the dislike field.
 func (r *mutationResolver) Dislike(ctx context.Context, idrestaurant *int) ([]*model.Restaurant, error) {
-	panic(fmt.Errorf("not implemented: Dislike - dislike"))
+	gc, err := api.GetGinContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id_user := gc.GetInt("id")
+	go api.GetServer().Store.DeleteRestaurantFromFavorite(id_user, *idrestaurant)
+	restaurants, err := api.GetServer().Store.GetFavoriteRestaurants(id_user)
+	var restaurants_gql []*model.Restaurant
+	for _, resto := range restaurants {
+		restaurants_gql = append(restaurants_gql, resto.ToGraphQL())
+	}
+	return restaurants_gql, err
 }
 
 // ModifyUserField is the re solver for the modifyUserField field.
@@ -154,10 +178,28 @@ func (r *queryResolver) Period(ctx context.Context, start *string, end *string) 
 		return nil, err
 	}
 	id := gc.GetInt("id")
-
-	cal, err := api.GetServer().Store.GetCalendarOfUser(id)
+	url_ical, err := api.GetServer().Store.GetCalendarOfUser(id)
 	if err != nil {
 		return nil, err
+	}
+	json_calendar, err := api.GetServer().Cache.Get(url_ical)
+	var cal types.Calendar
+	if err != nil {
+		if err == redis.Nil { // ical not cached
+			cal, err = types.NewCalendar(url_ical)
+			if err != nil {
+				return nil, err
+			}
+			go api.GetServer().Cache.SetCalendarAsync(cal) //set cal in cache asynchronously
+		} else {
+			return nil, err
+		}
+	} else { //if ical is cached
+		parsed_cal, err := types.ParseJsonCalendar(json_calendar)
+		if err != nil {
+			return nil, err
+		}
+		cal = types.NewCalendarFromJsonCalendar(&parsed_cal)
 	}
 	start_date, err := time.Parse("02-Jan-2006", *start)
 	if err != nil {

@@ -21,13 +21,14 @@ type Server struct {
 	router         *gin.Engine
 	graphqlHandler *handler.Server
 	Store          storage.PostgresDatabase
+	Cache          *storage.RedisCache
 }
 
 func GetServer() *Server {
 	return server
 }
 
-func NewServer(listenAddr string, store storage.PostgresDatabase, h *handler.Server) *Server {
+func NewServer(listenAddr string, store storage.PostgresDatabase, cache *storage.RedisCache, h *handler.Server) *Server {
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
@@ -40,6 +41,7 @@ func NewServer(listenAddr string, store storage.PostgresDatabase, h *handler.Ser
 	server = &Server{
 		listenAddr:     listenAddr,
 		Store:          store,
+		Cache:          cache,
 		router:         r,
 		graphqlHandler: h,
 	}
