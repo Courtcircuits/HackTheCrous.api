@@ -12,10 +12,19 @@ import (
 	"github.com/Courtcircuits/HackTheCrous.api/util"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/google"
 )
 
 var server *Server
 
+type Credentials struct {
+	Mail     string `json:"mail"`
+	Password string `json:"password"`
+	Remember bool   `json:"remember"`
+}
 type Server struct {
 	listenAddr     string
 	router         *gin.Engine
@@ -46,28 +55,79 @@ func NewServer(listenAddr string, store storage.PostgresDatabase, cache *storage
 		graphqlHandler: h,
 	}
 
+	key := "Secret-session-key" // Replace with your SESSION_SECRET or similar
+	maxAge := 86400 * 30        // 30 days
+	isProd := false             // Set to true when serving over https
+
+	storeSession := sessions.NewCookieStore([]byte(key))
+	storeSession.MaxAge(maxAge)
+	storeSession.Options.Path = "/"
+	storeSession.Options.HttpOnly = true // HttpOnly should always be enabled
+	storeSession.Options.Secure = isProd
+
+	gothic.Store = storeSession
+
+	goth.UseProviders(
+		google.New(util.Get("GOOGLE_CLIENT_ID"), util.Get("GOOGLE_AUTH_SECRET"), util.Get("FULL_SERVER_URL")+"/auth/callback?provider=google", "email"),
+	)
+
 	return server
 }
 
 func (s *Server) Start() error {
+
 	critical_route := s.router.Group("/")
 	critical_route.Use(JWTAuth())
 	critical_route.Use(GinContextMiddleware())
 
 	s.router.POST("/login", s.Login)
 	s.router.POST("/signup", s.Signup)
+	s.router.GET("/auth", s.GoogleAuth)
+	s.router.GET("/auth/callback", s.GoogleAuthCallback)
+
 	critical_route.POST("/graphql", s.GraphQLHandler)
 
 	s.router.Run(s.listenAddr)
 	return http.ListenAndServe(s.listenAddr, nil)
 }
 
-func (s *Server) Login(c *gin.Context) {
-	type Credentials struct {
-		Mail     string `json:"mail"`
-		Password string `json:"password"`
-		Remember bool   `json:"remember"`
+func (s *Server) GoogleAuth(c *gin.Context) {
+	gothic.BeginAuthHandler(c.Writer, c.Request)
+}
+
+func (s *Server) GoogleAuthCallback(c *gin.Context) {
+	log.Println("herrrrreeeeee")
+	google_user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+	if err != nil {
+		c.AbortWithStatusJSON(401, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
+	log.Printf("Google user logged : %q\n", google_user.Email)
+
+	credentials := Credentials{
+		Mail:     google_user.Email,
+		Password: "",
+		Remember: true,
+	}
+
+	user, err := s.Store.GetUserByEmail(credentials.Mail)
+
+	if err == storage.ErrUserNotFound {
+		user, err = s.Store.CreateGoogleUser(credentials.Mail)
+	}
+
+	log.Printf("user auth_token : %q\n", user.Auth_token.String)
+
+	if err != nil {
+		c.AbortWithStatus(401)
+		return
+	}
+	s.SendAuthToken(c, &user, credentials)
+}
+
+func (s *Server) Login(c *gin.Context) {
 
 	var credentials Credentials
 
@@ -90,32 +150,7 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	tokens, err := user.GetTokens(credentials.Remember)
-
-	user.Auth_token = sql.NullString{String: tokens.Auth_token, Valid: true}
-
-	if err == types.ErrRefreshTokenNeedUpdate && credentials.Remember {
-		refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
-		user.Refresh_token = sql.NullString{String: refresh_token, Valid: true} //not gonna lie, this conversion seems wrong
-	} else if err != nil {
-		c.AbortWithStatus(401)
-		return
-	}
-
-	if !credentials.Remember {
-		user.Refresh_token = sql.NullString{
-			String: "",
-			Valid:  false,
-		}
-	}
-
-	c.JSON(200, gin.H{
-		"type":         "success",
-		"message":      "Logged in",
-		"token":        user.Auth_token.String,
-		"refreshToken": user.Refresh_token.String,
-		"mail":         user.Email.String,
-	})
+	s.SendAuthToken(c, &user, credentials)
 }
 
 func (s *Server) GraphQLHandler(c *gin.Context) {
@@ -141,7 +176,7 @@ func (s *Server) Signup(c *gin.Context) {
 
 	pg_storage := storage.NewPostgresDatabase()
 
-	user, err := pg_storage.CreateUser(cred.Mail, cred.Password)
+	user, err := pg_storage.CreateLocalUser(cred.Mail, cred.Password)
 
 	if err != nil {
 		c.AbortWithStatusJSON(401, gin.H{
@@ -169,5 +204,35 @@ func (s *Server) Signup(c *gin.Context) {
 		"message":      "Signed up",
 		"token":        tokens.Auth_token,
 		"refreshToken": user.Refresh_token.String,
+	})
+}
+
+func (s *Server) SendAuthToken(c *gin.Context, user *types.User, credentials Credentials) {
+
+	tokens, err := user.GetTokens(credentials.Remember)
+
+	user.Auth_token = sql.NullString{String: tokens.Auth_token, Valid: true}
+
+	if err == types.ErrRefreshTokenNeedUpdate && credentials.Remember {
+		refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
+		user.Refresh_token = sql.NullString{String: refresh_token, Valid: true} //not gonna lie, this conversion seems wrong
+	} else if err != nil {
+		c.AbortWithStatus(401)
+		return
+	}
+
+	if !credentials.Remember {
+		user.Refresh_token = sql.NullString{
+			String: "",
+			Valid:  false,
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"type":         "success",
+		"message":      "Logged in",
+		"token":        user.Auth_token.String,
+		"refreshToken": user.Refresh_token.String,
+		"mail":         user.Email.String,
 	})
 }

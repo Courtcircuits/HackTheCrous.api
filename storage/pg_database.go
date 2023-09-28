@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Courtcircuits/HackTheCrous.api/storage/pg_util"
 	"github.com/Courtcircuits/HackTheCrous.api/types"
@@ -103,30 +104,86 @@ func (db *PostgresDatabase) UpdateRefreshToken(id_user int) string {
 	return refresh_token
 }
 
-func (db *PostgresDatabase) CreateUser(email string, password string) (types.User, error) {
+type UserCreationFunc func(*UserCreationOpts) error
 
-	if len(password) < 6 {
-		return types.User{}, ErrShortPassword
+type UserCreationOpts struct {
+	password *string
+	email    string
+}
+
+func defaultUserOpts() *UserCreationOpts {
+	return &UserCreationOpts{
+		password: nil,
+		email:    "",
 	}
+}
 
-	if match, _ := regexp.MatchString("^.*@etu\\.umontpellier\\.fr$", email); !match {
-		return types.User{}, ErrWrongEmailFormat
+func withPassword(password *string) UserCreationFunc {
+	return func(uco *UserCreationOpts) error {
+		if len(*password) < 6 {
+			return ErrShortPassword
+		}
+		uco.password = password
+		return nil
 	}
+}
 
-	activation_code := util.GenActivationCode()
-	hashed_password, salt := util.HashAndSalted(password)
-	query := `INSERT INTO users(mail, password, nonce, salt) VALUES ($1, $2, $3, $4) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
+func withEmail(email string) UserCreationFunc {
+	return func(uco *UserCreationOpts) error {
+		if match, _ := regexp.MatchString("^.*@etu\\.umontpellier\\.fr$", email); !match {
+			return ErrWrongEmailFormat
+		}
+		uco.email = email
+		return nil
+	}
+}
 
+func withGmail(email string) UserCreationFunc {
+	return func(uco *UserCreationOpts) error {
+		uco.email = email
+		return nil
+	}
+}
+
+func (db *PostgresDatabase) CreateLocalUser(mail string, password string) (types.User, error) {
+	return db.CreateUser(withPassword(&password), withEmail(mail))
+}
+
+func (db *PostgresDatabase) CreateUser(opts ...UserCreationFunc) (types.User, error) {
+	user_opts := defaultUserOpts()
+	for _, fn := range opts {
+		err := fn(user_opts)
+		if err != nil {
+			return types.User{}, err
+		}
+	}
+	return db.createUser(*user_opts)
+}
+
+func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error) {
 	client, err := db.Connect()
 	if err != nil {
 		panic(err)
 	}
 	defer client.Close()
 
-	user, err := types.ScanUser(client.QueryRow(query, email, hashed_password, activation_code, salt))
+	activation_code := util.GenActivationCode()
+	var user types.User
+	if opts.password != nil {
+		hashed_password, salt := util.HashAndSalted(*opts.password)
+		query := `INSERT INTO users(mail, password, nonce, salt) VALUES ($1, $2, $3, $4) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
 
-	if err != nil {
-		return types.User{}, err
+		user, err = types.ScanUser(client.QueryRow(query, opts.email, hashed_password, activation_code, salt))
+		if err != nil {
+			return types.User{}, err
+		}
+	} else {
+		query := `INSERT INTO users(mail, nonce) VALUES ($1, $2) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
+
+		user, err = types.ScanUser(client.QueryRow(query, opts.email, activation_code))
+		if err != nil {
+			return types.User{}, err
+		}
 	}
 
 	return user, nil
@@ -341,6 +398,22 @@ func (db *PostgresDatabase) DeleteRestaurantFromFavorite(id_user int, id_restaur
 	defer client.Close()
 	_, err = client.Exec(query, id_restaurant, id_user)
 	return err
+}
+
+func (db *PostgresDatabase) CreateGoogleUser(email string) (types.User, error) {
+	user, err := db.CreateUser(withGmail(email))
+	if err != nil {
+		return types.User{}, err
+	}
+	client, err := db.Connect()
+	query := `INSERT INTO federal_credentials(user_id, provider, created_at) VALUES($1, $2, $3);`
+	if err != nil {
+		log.Fatalf("caught database err when opening : %v\n", err)
+		return types.User{}, err
+	}
+	defer client.Close()
+	_, err = client.Exec(query, user.ID, "google", time.Now())
+	return user, err
 }
 
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")
