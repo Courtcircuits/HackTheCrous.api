@@ -107,14 +107,16 @@ func (db *PostgresDatabase) UpdateRefreshToken(id_user int) string {
 type UserCreationFunc func(*UserCreationOpts) error
 
 type UserCreationOpts struct {
-	password *string
-	email    string
+	password        *string
+	email           string
+	activation_code string
 }
 
 func defaultUserOpts() *UserCreationOpts {
 	return &UserCreationOpts{
-		password: nil,
-		email:    "",
+		password:        nil,
+		email:           "",
+		activation_code: util.GenActivationCode(),
 	}
 }
 
@@ -167,26 +169,25 @@ func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error
 	}
 	defer client.Close()
 
-	activation_code := util.GenActivationCode()
 	var user types.User
 	if opts.password != nil {
 		hashed_password, salt := util.HashAndSalted(*opts.password)
 		query := `INSERT INTO users(mail, password, nonce, salt) VALUES ($1, $2, $3, $4) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
 
-		user, err = types.ScanUser(client.QueryRow(query, opts.email, hashed_password, activation_code, salt))
+		user, err = types.ScanUser(client.QueryRow(query, opts.email, hashed_password, opts.activation_code, salt))
 		if err != nil {
 			return types.User{}, err
 		}
 	} else {
 		query := `INSERT INTO users(mail, nonce) VALUES ($1, $2) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
 
-		user, err = types.ScanUser(client.QueryRow(query, opts.email, activation_code))
+		user, err = types.ScanUser(client.QueryRow(query, opts.email, opts.activation_code))
 		if err != nil {
 			return types.User{}, err
 		}
 	}
 
-	go util.SendConfirmationMail(user.Email.String, activation_code)
+	go util.SendConfirmationMail(user.Email.String, opts.activation_code)
 
 	return user, nil
 }
