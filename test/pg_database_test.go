@@ -33,7 +33,7 @@ func TestCreateUser(t *testing.T) {
 		t.Errorf("error when delete : %q", err_delete)
 	}
 
-	user, err := pg_storage.CreateUser(email, password)
+	user, err := pg_storage.CreateLocalUser(email, password)
 
 	if err != nil {
 		t.Errorf("shouldn't throw error %q", err)

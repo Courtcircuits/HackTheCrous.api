@@ -186,6 +186,8 @@ func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error
 		}
 	}
 
+	go util.SendConfirmationMail(user.Email.String, activation_code)
+
 	return user, nil
 }
 
