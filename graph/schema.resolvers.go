@@ -27,7 +27,17 @@ func (r *mutationResolver) CreateSchool(ctx context.Context, name *string, coord
 
 // ModifyUser is the resolver for the modifyUser field.
 func (r *mutationResolver) ModifyUser(ctx context.Context, name *string, ical *string, school *int, restaurants []*int) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: ModifyUser - modifyUser"))
+	gc, err := api.GetGinContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	storage := api.GetServer().Store
+	id_user := gc.GetInt("id")
+	for _, restaurant_id := range restaurants {
+		go storage.AddRestaurantAsFavorite(id_user, *restaurant_id)
+	}
+	user, err := storage.UpdateUser(id_user, *name, *ical, *school)
+	return user.ToGraphQL(), err
 }
 
 // ModifyUserBySchoolName is the resolver for the modifyUserBySchoolName field.

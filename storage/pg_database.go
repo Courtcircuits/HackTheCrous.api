@@ -88,6 +88,20 @@ func (db *PostgresDatabase) GetUserByEmail(mail string) (types.User, error) {
 	return user, nil
 }
 
+func (db *PostgresDatabase) UpdateUser(id_user int, name string, ical string, school_id int) (*types.User, error) {
+	query_update_user := `UPDATE users SET name=$1, idschool=$2, ical=$3 WHERE iduser=$4 RETURNING iduser, mail, password, name, idschool, ical, nonce, name_modified, token, salt`
+
+	client, err := db.Connect()
+	if err != nil {
+		return nil, errors.New("error while connection to database")
+	}
+	defer client.Close()
+
+	user, err := types.ScanUser(client.QueryRow(query_update_user, name, school_id, ical, id_user))
+
+	return &user, err
+}
+
 func (db *PostgresDatabase) UpdateRefreshToken(id_user int) string {
 	client, err := db.Connect()
 	if err != nil {
