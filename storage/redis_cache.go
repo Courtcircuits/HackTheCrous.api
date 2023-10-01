@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Courtcircuits/HackTheCrous.api/types"
@@ -38,17 +39,19 @@ func (c *RedisCache) Set(key string, val string, exp time.Duration) error {
 	return nil
 }
 
-func (c *RedisCache) SetCalendarAsync(cal types.Calendar) {
+func (c *RedisCache) SetCalendarAsync(cal types.Calendar, err_chan chan error) {
 	cal_json, err := cal.ToMap()
 	if err != nil {
-		panic(err)
+		log.Printf("err when mapping events : %v\n", err)
+		err_chan <- err
+		return
 	}
 	cal_stringified, err := types.JsonCalendarToString(cal_json)
 	if err != nil {
-		panic(err) //can be enhanced by using channels to return errors
+		log.Printf("err when stringyfing events : %v\n", err)
+		err_chan <- err
+		return
 	}
-	err = c.Set(cal.Url, cal_stringified, time.Hour)
-	if err != nil {
-		panic(err)
-	}
+	c.Set(cal.Url, cal_stringified, time.Hour)
+	err_chan <- nil
 }

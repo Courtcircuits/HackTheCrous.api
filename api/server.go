@@ -41,7 +41,7 @@ func NewServer(listenAddr string, store storage.PostgresDatabase, cache *storage
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{util.Get("CLIENT_URL")}
+	config.AllowAllOrigins = true
 	config.AllowMethods = []string{"GET", "POST"}
 	config.AllowHeaders = []string{"Authorization", "Content-Type", "Origin"}
 
@@ -96,7 +96,6 @@ func (s *Server) GoogleAuth(c *gin.Context) {
 }
 
 func (s *Server) GoogleAuthCallback(c *gin.Context) {
-	log.Println("herrrrreeeeee")
 	google_user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 	if err != nil {
 		c.AbortWithStatusJSON(401, gin.H{
@@ -154,7 +153,6 @@ func (s *Server) Login(c *gin.Context) {
 }
 
 func (s *Server) GraphQLHandler(c *gin.Context) {
-
 	s.graphqlHandler.ServeHTTP(c.Writer, c.Request)
 }
 

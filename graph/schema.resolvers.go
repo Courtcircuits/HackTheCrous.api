@@ -183,6 +183,13 @@ func (r *queryResolver) Today(ctx context.Context) ([]*model.PlanningDay, error)
 
 // Period is the resolver for the period field.
 func (r *queryResolver) Period(ctx context.Context, start *string, end *string) ([]*model.PlanningDay, error) {
+	if start == nil {
+		return nil, errors.New("need to define start")
+	}
+	if end == nil {
+		return nil, errors.New("need to define end")
+	}
+	log.Printf("reading period : %q to %q\n", *start, *end)
 	gc, err := api.GetGinContext(ctx)
 	if err != nil {
 		return nil, err
@@ -200,7 +207,12 @@ func (r *queryResolver) Period(ctx context.Context, start *string, end *string) 
 			if err != nil {
 				return nil, err
 			}
-			go api.GetServer().Cache.SetCalendarAsync(cal) //set cal in cache asynchronously
+			err_chan := make(chan error)
+			go api.GetServer().Cache.SetCalendarAsync(cal, err_chan) //set cal in cache asynchronously
+			err_async := <-err_chan
+			if err_async != nil {
+				log.Printf("ERROR while caching calendar : %v", err)
+			}
 		} else {
 			return nil, err
 		}
@@ -219,7 +231,10 @@ func (r *queryResolver) Period(ctx context.Context, start *string, end *string) 
 	if err != nil {
 		return nil, err
 	}
-	return cal.GetPeriod(start_date, end_date)
+	period, err := cal.GetPeriod(start_date, end_date)
+	log.Println(period)
+
+	return period, err
 }
 
 // GetLatestMail is the resolver for the getLatestMail field.
