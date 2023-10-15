@@ -14,8 +14,9 @@ type Coordinates struct {
 }
 
 type Food struct {
-	Names    []*string `json:"names,omitempty"`
-	Category *string   `json:"category,omitempty"`
+	Names       []*string     `json:"names,omitempty"`
+	Category    *string       `json:"category,omitempty"`
+	Restaurants []*Restaurant `json:"restaurants,omitempty"`
 }
 
 type Mail struct {

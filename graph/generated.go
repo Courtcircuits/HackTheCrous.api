@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Food() FoodResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Restaurant() RestaurantResolver
@@ -59,8 +60,9 @@ type ComplexityRoot struct {
 	}
 
 	Food struct {
-		Category func(childComplexity int) int
-		Names    func(childComplexity int) int
+		Category    func(childComplexity int) int
+		Names       func(childComplexity int) int
+		Restaurants func(childComplexity int) int
 	}
 
 	Mail struct {
@@ -100,6 +102,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Day              func(childComplexity int, date *string) int
+		Food             func(childComplexity int) int
 		GetLatestMail    func(childComplexity int) int
 		GetLatestMails   func(childComplexity int, rangeArg *int) int
 		Period           func(childComplexity int, start *string, end *string) int
@@ -139,6 +142,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type FoodResolver interface {
+	Restaurants(ctx context.Context, obj *model.Food) ([]*model.Restaurant, error)
+}
 type MutationResolver interface {
 	CreateSchool(ctx context.Context, name *string, coords *string) (*model.School, error)
 	ModifyUser(ctx context.Context, name *string, ical *string, school *int, restaurants []*int) (*model.User, error)
@@ -160,6 +166,7 @@ type QueryResolver interface {
 	Period(ctx context.Context, start *string, end *string) ([]*model.PlanningDay, error)
 	GetLatestMail(ctx context.Context) (*model.Mail, error)
 	GetLatestMails(ctx context.Context, rangeArg *int) ([]*model.Mail, error)
+	Food(ctx context.Context) ([]*model.Food, error)
 }
 type RestaurantResolver interface {
 	Meals(ctx context.Context, obj *model.Restaurant) ([]*model.Meal, error)
@@ -230,6 +237,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Food.Names(childComplexity), true
+
+	case "Food.restaurants":
+		if e.complexity.Food.Restaurants == nil {
+			break
+		}
+
+		return e.complexity.Food.Restaurants(childComplexity), true
 
 	case "Mail.cc":
 		if e.complexity.Mail.Cc == nil {
@@ -433,6 +447,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Day(childComplexity, args["date"].(*string)), true
+
+	case "Query.food":
+		if e.complexity.Query.Food == nil {
+			break
+		}
+
+		return e.complexity.Query.Food(childComplexity), true
 
 	case "Query.getLatestMail":
 		if e.complexity.Query.GetLatestMail == nil {
@@ -1450,6 +1471,61 @@ func (ec *executionContext) fieldContext_Food_category(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Food_restaurants(ctx context.Context, field graphql.CollectedField, obj *model.Food) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Food_restaurants(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Food().Restaurants(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Restaurant)
+	fc.Result = res
+	return ec.marshalORestaurant2ᚕᚖgithubᚗcomᚋCourtcircuitsᚋHackTheCrousᚗapiᚋgraphᚋmodelᚐRestaurant(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Food_restaurants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Food",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "idrestaurant":
+				return ec.fieldContext_Restaurant_idrestaurant(ctx, field)
+			case "url":
+				return ec.fieldContext_Restaurant_url(ctx, field)
+			case "name":
+				return ec.fieldContext_Restaurant_name(ctx, field)
+			case "meals":
+				return ec.fieldContext_Restaurant_meals(ctx, field)
+			case "coords":
+				return ec.fieldContext_Restaurant_coords(ctx, field)
+			case "distance":
+				return ec.fieldContext_Restaurant_distance(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mail_from(ctx context.Context, field graphql.CollectedField, obj *model.Mail) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mail_from(ctx, field)
 	if err != nil {
@@ -1900,6 +1976,8 @@ func (ec *executionContext) fieldContext_Meal_foodies(ctx context.Context, field
 				return ec.fieldContext_Food_names(ctx, field)
 			case "category":
 				return ec.fieldContext_Food_category(ctx, field)
+			case "restaurants":
+				return ec.fieldContext_Food_restaurants(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Food", field.Name)
 		},
@@ -3302,6 +3380,55 @@ func (ec *executionContext) fieldContext_Query_getLatestMails(ctx context.Contex
 	if fc.Args, err = ec.field_Query_getLatestMails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_food(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_food(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Food(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Food)
+	fc.Result = res
+	return ec.marshalOFood2ᚕᚖgithubᚗcomᚋCourtcircuitsᚋHackTheCrousᚗapiᚋgraphᚋmodelᚐFood(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_food(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "names":
+				return ec.fieldContext_Food_names(ctx, field)
+			case "category":
+				return ec.fieldContext_Food_category(ctx, field)
+			case "restaurants":
+				return ec.fieldContext_Food_restaurants(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Food", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -6009,6 +6136,39 @@ func (ec *executionContext) _Food(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Food_names(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._Food_category(ctx, field, obj)
+		case "restaurants":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Food_restaurants(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6472,6 +6632,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getLatestMails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "food":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_food(ctx, field)
 				return res
 			}
 

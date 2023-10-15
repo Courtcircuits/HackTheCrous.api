@@ -17,8 +17,22 @@ import (
 	"github.com/Courtcircuits/HackTheCrous.api/graph/model"
 	"github.com/Courtcircuits/HackTheCrous.api/types"
 	"github.com/Courtcircuits/HackTheCrous.api/util"
-	"github.com/redis/go-redis/v9"
+	redis "github.com/redis/go-redis/v9"
 )
+
+// Restaurants is the resolver for the restaurants field.
+func (r *foodResolver) Restaurants(ctx context.Context, obj *model.Food) ([]*model.Restaurant, error) {
+	restaurants, err := api.GetServer().Store.GetRestaurantsFromFood(*obj.Names[0])
+	if err != nil {
+		return nil, err
+	}
+	var restaurants_gql []*model.Restaurant
+	for _, restaurant := range restaurants {
+		restaurants_gql = append(restaurants_gql, restaurant.ToGraphQL())
+	}
+	fmt.Printf("food : %q -> %v\n", *obj.Names[0], restaurants)
+	return restaurants_gql, nil
+}
 
 // CreateSchool is the resolver for the createSchool field.
 func (r *mutationResolver) CreateSchool(ctx context.Context, name *string, coords *string) (*model.School, error) {
@@ -105,7 +119,6 @@ func (r *queryResolver) Restaurants(ctx context.Context) ([]*model.Restaurant, e
 }
 
 // Search is the resolver for the search query
-// this query retrieves a set of restaurants that contains a specific meal (I guess)
 func (r *queryResolver) Search(ctx context.Context, query *string) ([]*model.Restaurant, error) {
 	var restaurants []*model.Restaurant
 	db_restaurants, err := api.GetServer().Store.SearchRestaurant(*query)
@@ -247,6 +260,19 @@ func (r *queryResolver) GetLatestMails(ctx context.Context, rangeArg *int) ([]*m
 	panic(fmt.Errorf("not implemented: GetLatestMails - getLatestMails"))
 }
 
+// Food is the resolver for the food field.
+func (r *queryResolver) Food(ctx context.Context) ([]*model.Food, error) {
+	foods, err := api.GetServer().Store.GetFoods()
+	if err != nil {
+		return nil, err
+	}
+	var foods_gql []*model.Food
+	for _, food := range foods {
+		foods_gql = append(foods_gql, food.ToGraphQL())
+	}
+	return foods_gql, nil
+}
+
 // Meals is the resolver for the meals field.
 func (r *restaurantResolver) Meals(ctx context.Context, obj *model.Restaurant) ([]*model.Meal, error) {
 	meals, err := api.GetServer().Store.GetMealsFromRestaurant(*obj.Idrestaurant)
@@ -286,6 +312,9 @@ func (r *restaurantResolver) Distance(ctx context.Context, obj *model.Restaurant
 	return &distance, nil
 }
 
+// Food returns FoodResolver implementation.
+func (r *Resolver) Food() FoodResolver { return &foodResolver{r} }
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -295,6 +324,7 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Restaurant returns RestaurantResolver implementation.
 func (r *Resolver) Restaurant() RestaurantResolver { return &restaurantResolver{r} }
 
+type foodResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type restaurantResolver struct{ *Resolver }

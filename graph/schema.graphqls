@@ -20,6 +20,7 @@ type Query {
   period(start: Date, end: Date): [PlanningDay]
   getLatestMail: Mail
   getLatestMails(range: Int): [Mail]
+  food: [Food]
 }
 
 type Mutation {
@@ -88,6 +89,7 @@ type PlanningDay {
 type Food {
   names: [String]
   category: String
+  restaurants: [Restaurant] 
 }
 type Mail {
   from: String

@@ -17,6 +17,10 @@ const (
 	DINER         Period = "Dîner"
 )
 
+type Food struct {
+	Name string `json:"name"`
+}
+
 type Foods struct {
 	Food []string `json:"food"`
 	Type string   `json:"type"`
@@ -105,5 +109,13 @@ func (m Meal) ToGraphQL() *model.Meal {
 		Typemeal: (*string)(&m.Type),
 		Foodies:  foodies_gql,
 		Day:      &stringifiedDate,
+	}
+}
+
+func (f Food) ToGraphQL() *model.Food {
+	fake_cat := "food"
+	return &model.Food{
+		Names:       []*string{&f.Name},
+		Category:    &fake_cat,
 	}
 }
