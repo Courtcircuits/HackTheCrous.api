@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -44,6 +45,20 @@ func (db *PostgresDatabase) Connect() (*sql.DB, error) {
 
 var ErrUserNotFound = errors.New("user not found")
 
+func (db *PostgresDatabase) UpdateMail(id int, mail string) error {
+	client, err := db.Connect()
+	if err != nil {
+		return fmt.Errorf("err when updating mail : %v", err)
+	}
+	defer client.Close()
+
+	query := `UPDATE users SET mail=$1 WHERE iduser=$2`
+
+	_, err = client.Exec(query, mail, id)
+
+	return err
+}
+
 // Search a user in the DB by ID and returns an object of type User
 func (db *PostgresDatabase) GetUserByID(id int) (types.User, error) {
 	client, err := db.Connect()
@@ -78,6 +93,28 @@ func (db *PostgresDatabase) GetUserByEmail(mail string) (types.User, error) {
 	query := `SELECT iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt FROM users WHERE mail=$1;`
 
 	err = client.QueryRow(query, mail).Scan(&user.ID, &user.Email, &user.Password, &user.Name, &user.IDSchool, &user.Nonce, &user.Name_modified, &user.Refresh_token, &user.Ical, &user.Salt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.User{}, ErrUserNotFound
+		} else {
+			panic(err)
+		}
+	}
+	return user, nil
+}
+
+func (db *PostgresDatabase) GetUserByAuthCustomName(custom_name string) (types.User, error) {
+	client, err := db.Connect()
+	if err != nil {
+		return types.User{}, err
+	}
+	defer client.Close()
+
+	var user types.User
+
+	query := `SELECT u.iduser, u.mail, u.password, u.name, u.idschool, u.nonce, u.name_modified, u.token, u.ical, u.salt FROM users u JOIN federal_credentials fc ON fc.user_id=u.iduser WHERE fc.custom_name=$1;`
+
+	err = client.QueryRow(query, custom_name).Scan(&user.ID, &user.Email, &user.Password, &user.Name, &user.IDSchool, &user.Nonce, &user.Name_modified, &user.Refresh_token, &user.Ical, &user.Salt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return types.User{}, ErrUserNotFound
@@ -161,10 +198,6 @@ func withGmail(email string) UserCreationFunc {
 	}
 }
 
-func (db *PostgresDatabase) CreateLocalUser(mail string, password string) (types.User, error) {
-	return db.CreateUser(withPassword(&password), withEmail(mail))
-}
-
 func (db *PostgresDatabase) CreateUser(opts ...UserCreationFunc) (types.User, error) {
 	user_opts := defaultUserOpts()
 	for _, fn := range opts {
@@ -176,15 +209,31 @@ func (db *PostgresDatabase) CreateUser(opts ...UserCreationFunc) (types.User, er
 	return db.createUser(*user_opts)
 }
 
+func (db *PostgresDatabase) CreateLocalUser(mail string, password string) (types.User, error) {
+	user, err := db.CreateUser(withPassword(&password), withEmail(mail))
+
+	client, err := db.Connect()
+	if err != nil {
+		return types.User{}, err
+	}
+	query := `INSERT INTO federal_credentials(user_id, provider, created_at, custom_name) VALUES($1, $2, $3, $4);`
+
+	_, err = client.Exec(query, user.ID, "local", time.Now(), mail)
+	defer client.Close()
+	err = util.SendConfirmationMail(user.Email.String, user.Nonce.String)
+	return user, err
+}
+
 func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error) {
 	client, err := db.Connect()
 	if err != nil {
+		log.Println(err)
 		panic(err)
 	}
 	defer client.Close()
 
 	var user types.User
-	if opts.password != nil {
+	if opts.password != nil { //creating local user because password is defined
 		hashed_password, salt := util.HashAndSalted(*opts.password)
 		query := `INSERT INTO users(mail, password, nonce, salt) VALUES ($1, $2, $3, $4) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
 
@@ -192,6 +241,7 @@ func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error
 		if err != nil {
 			return types.User{}, err
 		}
+
 	} else {
 		query := `INSERT INTO users(mail, nonce) VALUES ($1, $2) RETURNING iduser, mail, password, name, idschool, nonce, name_modified, token, ical, salt;`
 
@@ -200,8 +250,6 @@ func (db *PostgresDatabase) createUser(opts UserCreationOpts) (types.User, error
 			return types.User{}, err
 		}
 	}
-
-	go util.SendConfirmationMail(user.Email.String, opts.activation_code)
 
 	return user, nil
 }
@@ -423,14 +471,38 @@ func (db *PostgresDatabase) CreateGoogleUser(email string) (types.User, error) {
 		return types.User{}, err
 	}
 	client, err := db.Connect()
-	query := `INSERT INTO federal_credentials(user_id, provider, created_at) VALUES($1, $2, $3);`
+
+	query := `INSERT INTO federal_credentials(user_id, provider, created_at, custom_name) VALUES($1, $2, $3, $4);`
 	if err != nil {
 		log.Fatalf("caught database err when opening : %v\n", err)
 		return types.User{}, err
 	}
 	defer client.Close()
-	_, err = client.Exec(query, user.ID, "google", time.Now())
+
+	_, err = client.Exec(query, user.ID, "google", time.Now(), email)
 	return user, err
+}
+
+func (db *PostgresDatabase) ConfirmMail(id_user int, nonce string) error {
+	user, err := db.GetUserByID(id_user)
+	if err != nil {
+		return err
+	}
+
+	if nonce != user.Nonce.String {
+		return errors.New("err : Bad nonce")
+	}
+
+	query := `UPDATE users SET nonce=NULL WHERE iduser=$1`
+	client, err := db.Connect()
+	if err != nil {
+		return err
+	}
+
+	defer client.Close()
+
+	_, err = client.Exec(query, id_user)
+	return err
 }
 
 var ErrWrongEmailFormat = errors.New("email must finished by @etu.umontpellier.fr")

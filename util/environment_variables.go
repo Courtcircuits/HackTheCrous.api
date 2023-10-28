@@ -18,7 +18,8 @@ func Get(key string) string {
 	value, ok := viper.Get(key).(string)
 
 	if !ok {
-		log.Fatalf("Invalid type assertion")
+		log.Printf("Env variable '%q' not found\n", key)
+		return ""
 	}
 
 	return value

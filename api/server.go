@@ -2,9 +2,11 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/Courtcircuits/HackTheCrous.api/storage"
@@ -82,10 +84,13 @@ func (s *Server) Start() error {
 
 	s.router.POST("/login", s.Login)
 	s.router.POST("/signup", s.Signup)
+	s.router.POST("/logout", s.Logout)
 	s.router.GET("/auth", s.GoogleAuth)
 	s.router.GET("/auth/callback", s.GoogleAuthCallback)
 
 	critical_route.POST("/graphql", s.GraphQLHandler)
+	critical_route.POST("/mail/confirm", s.SendConfirmationMail)
+	critical_route.POST("/mail/code", s.ConfirmMail)
 
 	s.router.Run(s.listenAddr)
 	return http.ListenAndServe(s.listenAddr, nil)
@@ -111,19 +116,37 @@ func (s *Server) GoogleAuthCallback(c *gin.Context) {
 		Remember: true,
 	}
 
-	user, err := s.Store.GetUserByEmail(credentials.Mail)
+	user, err := s.Store.GetUserByAuthCustomName(credentials.Mail)
 
 	if err == storage.ErrUserNotFound {
 		user, err = s.Store.CreateGoogleUser(credentials.Mail)
 	}
 
-	log.Printf("user auth_token : %q\n", user.Auth_token.String)
-
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatus(401)
 		return
 	}
-	s.SendAuthToken(c, &user, credentials)
+	err = s.SendAuthToken(&user, credentials)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(401)
+		return
+	}
+
+	var mailVerified string
+	if !user.Nonce.Valid {
+		mailVerified = "true"
+	} else {
+		mailVerified = "false"
+	}
+
+	c.Redirect(301, util.Get("CLIENT_URL")+"?mailVerified="+mailVerified+"&token="+user.Auth_token.String+"&refreshToken="+user.Refresh_token.String+"&mail="+user.Email.String)
+	return
+}
+
+func (s *Server) Logout(c *gin.Context) {
+	c.String(200, "Logged out")
 }
 
 func (s *Server) Login(c *gin.Context) {
@@ -149,7 +172,18 @@ func (s *Server) Login(c *gin.Context) {
 		return
 	}
 
-	s.SendAuthToken(c, &user, credentials)
+	err = s.SendAuthToken(&user, credentials)
+	if err != nil {
+		c.AbortWithStatus(401)
+		return
+	}
+	c.JSON(200, gin.H{
+		"type":         "success",
+		"message":      "Logged in",
+		"token":        user.Auth_token.String,
+		"refreshToken": user.Refresh_token.String,
+		"mail":         user.Email.String,
+	})
 }
 
 func (s *Server) GraphQLHandler(c *gin.Context) {
@@ -157,11 +191,6 @@ func (s *Server) GraphQLHandler(c *gin.Context) {
 }
 
 func (s *Server) Signup(c *gin.Context) {
-	type Credentials struct {
-		Mail     string `json:"mail"`
-		Password string `json:"password"`
-	}
-
 	cred := Credentials{}
 
 	if err := c.BindJSON(&cred); err != nil {
@@ -169,6 +198,7 @@ func (s *Server) Signup(c *gin.Context) {
 		c.AbortWithStatus(400)
 		return
 	}
+	cred.Remember = true
 
 	fmt.Printf("mail : %q, passsword :%q\n", cred.Mail, cred.Password)
 
@@ -183,40 +213,94 @@ func (s *Server) Signup(c *gin.Context) {
 		return
 	}
 
-	tokens, err := user.GetTokens(true)
-
-	log.Printf("generated auth token : %q \n", tokens.Auth_token)
-
-	if err != nil {
-		log.Printf("error caught : %q", err)
-		if err == types.ErrRefreshTokenNeedUpdate {
-			refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
-			user.Refresh_token = sql.NullString{String: refresh_token, Valid: true}
-		} else {
-			c.AbortWithStatus(500)
-		}
-	}
+	s.SendAuthToken(&user, cred)
 
 	c.JSON(200, gin.H{
 		"type":         "success",
 		"message":      "Signed up",
-		"token":        tokens.Auth_token,
+		"token":        user.Auth_token.String,
 		"refreshToken": user.Refresh_token.String,
 	})
 }
 
-func (s *Server) SendAuthToken(c *gin.Context, user *types.User, credentials Credentials) {
+func (s *Server) SendConfirmationMail(c *gin.Context) {
+	type Payload struct {
+		Student_mail string `json:"student_mail"`
+	}
 
+	var payload Payload
+	if err := c.BindJSON(&payload); err != nil {
+		fmt.Printf("wrong request")
+		c.AbortWithStatus(400)
+		return
+	}
+
+	id := c.GetInt("id")
+
+	user, err := s.Store.GetUserByID(id)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(401)
+		return
+	}
+	if match, _ := regexp.MatchString("^.*@etu\\.umontpellier\\.fr$", payload.Student_mail); !match {
+		c.AbortWithStatusJSON(400, gin.H{
+			"message": "wrong format for student mail",
+		})
+		return
+	}
+
+	err = util.SendConfirmationMail(payload.Student_mail, user.Nonce.String)
+	if err != nil {
+		log.Println(err)
+		c.AbortWithStatus(401)
+		return
+	}
+	err = s.Store.UpdateMail(int(user.ID.Int32), payload.Student_mail)
+	c.JSON(200, gin.H{
+		"type":    "Success",
+		"message": "mail sent",
+	})
+	return
+}
+
+func (s *Server) ConfirmMail(c *gin.Context) {
+	type Payload struct {
+		Nonce string `json:"nonce"`
+	}
+
+	var payload Payload
+	if err := c.BindJSON(&payload); err != nil {
+		fmt.Printf("wrong request")
+		c.AbortWithStatus(400)
+	}
+
+	id := c.GetInt("id")
+	err := s.Store.ConfirmMail(id, payload.Nonce)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"type": "Error",
+			"message": err,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"type": "Success",
+		"message": "Mail confirmed",
+	})
+}
+
+// set auth token inside the user passed by reference
+func (s *Server) SendAuthToken(user *types.User, credentials Credentials) error {
+	fmt.Println(user)
 	tokens, err := user.GetTokens(credentials.Remember)
 
 	user.Auth_token = sql.NullString{String: tokens.Auth_token, Valid: true}
-
 	if err == types.ErrRefreshTokenNeedUpdate && credentials.Remember {
 		refresh_token := s.Store.UpdateRefreshToken(int(user.ID.Int32))
 		user.Refresh_token = sql.NullString{String: refresh_token, Valid: true} //not gonna lie, this conversion seems wrong
 	} else if err != nil {
-		c.AbortWithStatus(401)
-		return
+		return errors.New("unauthorized")
 	}
 
 	if !credentials.Remember {
@@ -226,11 +310,5 @@ func (s *Server) SendAuthToken(c *gin.Context, user *types.User, credentials Cre
 		}
 	}
 
-	c.JSON(200, gin.H{
-		"type":         "success",
-		"message":      "Logged in",
-		"token":        user.Auth_token.String,
-		"refreshToken": user.Refresh_token.String,
-		"mail":         user.Email.String,
-	})
+	return nil
 }

@@ -56,6 +56,7 @@ CREATE TABLE federal_credentials(
     user_id INT,
     provider TEXT,
     created_at TIMESTAMP,
+    custom_name TEXT,
     CONSTRAINT fk_iduser_fc FOREIGN KEY (user_id) REFERENCES users(iduser) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
