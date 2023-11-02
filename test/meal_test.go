@@ -7,11 +7,72 @@ import (
 )
 
 func TestParseMeal(t *testing.T) {
-	foods_string := `[{"food": ["1 boisson chaude (café, thé, chocolat)", "+ 1 viennoiserie", "+ 1 jus d'orange ou 1 yaourt", "Tarif : 2.15 TTC (1.95 € HT)"], "type": "Formule petit déjeuner"}, {"food": ["1 boisson chaude (café, thé, chocolat)", "+ 1 viennoiserie", "+ 1 jus d'orange ", "+ 1 yaourt", "+ 1 compote", "Tarif : 3.19 TTC (2.90 € HT)", "HAPPY HOUR", "Tous les jours de 7h30 à 8h30, le petit dej' gourmand au prix du petit dej' classique ! (soit 2.15 TTC)"], "type": "Formule petit déjeuner gourmand"}]`
+	foods_string := `[
+  {
+    "type": "Formule goûter",
+    "content": [
+      "menu non communiqué"
+    ]
+  },
+  {
+    "type": "Pizza",
+    "content": [
+      "menu non communiqué"
+    ]
+  },
+  {
+    "type": "Plat cuisiné",
+    "content": [
+      "Pâtes bolognaise",
+      "Carré de seitan"
+    ]
+  }
+	]`
+
 	foods, err := types.ParseFoods(foods_string)
+
+	food_compare := []types.Foods{
+		{
+			Type: "Formule goûter",
+			Food: []string{
+				"menu non communiqué",
+			},
+		},
+		{
+			Type: "Pizza",
+			Food: []string{
+				"menu non communiqué",
+			},
+		},
+		{
+			Type: "Plat cuisiné",
+			Food: []string{
+				"Pâtes bolognaise",
+				"Carré de seitan",
+			},
+		},
+	}
+
+	is_equal := true
+	for i, food_cat := range food_compare {
+		if food_cat.Type != foods[i].Type {
+			is_equal = false
+			break
+		}
+		for j, food := range food_cat.Food {
+			if food != foods[i].Food[j] {
+				is_equal = false
+				break
+			}
+		}
+	}
 
 	if err != nil {
 		t.Fatal(err.Error())
+	}
+
+	if !is_equal {
+		t.Fatal("foods are not equal")
 	}
 
 	t.Log(foods)

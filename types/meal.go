@@ -22,7 +22,7 @@ type Food struct {
 }
 
 type Foods struct {
-	Food []string `json:"food"`
+	Food []string `json:"content"`
 	Type string   `json:"type"`
 }
 
