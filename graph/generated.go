@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 		Coords       func(childComplexity int) int
 		Distance     func(childComplexity int) int
 		Idrestaurant func(childComplexity int) int
+		Liked        func(childComplexity int) int
 		Meals        func(childComplexity int) int
 		Name         func(childComplexity int) int
 		URL          func(childComplexity int) int
@@ -172,6 +173,7 @@ type RestaurantResolver interface {
 	Meals(ctx context.Context, obj *model.Restaurant) ([]*model.Meal, error)
 
 	Distance(ctx context.Context, obj *model.Restaurant) (*float64, error)
+	Liked(ctx context.Context, obj *model.Restaurant) (*bool, error)
 }
 
 type executableSchema struct {
@@ -592,6 +594,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Restaurant.Idrestaurant(childComplexity), true
+
+	case "Restaurant.liked":
+		if e.complexity.Restaurant.Liked == nil {
+			break
+		}
+
+		return e.complexity.Restaurant.Liked(childComplexity), true
 
 	case "Restaurant.meals":
 		if e.complexity.Restaurant.Meals == nil {
@@ -1519,6 +1528,8 @@ func (ec *executionContext) fieldContext_Food_restaurants(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2270,6 +2281,8 @@ func (ec *executionContext) fieldContext_Mutation_like(ctx context.Context, fiel
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2336,6 +2349,8 @@ func (ec *executionContext) fieldContext_Mutation_dislike(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2675,6 +2690,8 @@ func (ec *executionContext) fieldContext_Query_restaurant(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2741,6 +2758,8 @@ func (ec *executionContext) fieldContext_Query_restaurants(ctx context.Context, 
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2796,6 +2815,8 @@ func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -2930,6 +2951,8 @@ func (ec *executionContext) fieldContext_Query_searchRestaurant(ctx context.Cont
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -3056,6 +3079,8 @@ func (ec *executionContext) fieldContext_Query_searchFood(ctx context.Context, f
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -3824,6 +3849,47 @@ func (ec *executionContext) fieldContext_Restaurant_distance(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Restaurant_liked(ctx context.Context, field graphql.CollectedField, obj *model.Restaurant) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Restaurant_liked(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Restaurant().Liked(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Restaurant_liked(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Restaurant",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _School_idschool(ctx context.Context, field graphql.CollectedField, obj *model.School) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_School_idschool(ctx, field)
 	if err != nil {
@@ -4255,6 +4321,8 @@ func (ec *executionContext) fieldContext_User_favorites(ctx context.Context, fie
 				return ec.fieldContext_Restaurant_coords(ctx, field)
 			case "distance":
 				return ec.fieldContext_Restaurant_distance(ctx, field)
+			case "liked":
+				return ec.fieldContext_Restaurant_liked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Restaurant", field.Name)
 		},
@@ -6753,6 +6821,39 @@ func (ec *executionContext) _Restaurant(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._Restaurant_distance(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "liked":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Restaurant_liked(ctx, field, obj)
 				return res
 			}
 

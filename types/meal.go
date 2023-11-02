@@ -115,7 +115,7 @@ func (m Meal) ToGraphQL() *model.Meal {
 func (f Food) ToGraphQL() *model.Food {
 	fake_cat := "food"
 	return &model.Food{
-		Names:       []*string{&f.Name},
-		Category:    &fake_cat,
+		Names:    []*string{&f.Name},
+		Category: &fake_cat,
 	}
 }

@@ -95,3 +95,5 @@ models:
         resolver: true
       distance:
         resolver: true
+      liked:
+        resolver: true

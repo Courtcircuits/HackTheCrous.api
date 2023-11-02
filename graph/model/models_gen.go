@@ -52,6 +52,7 @@ type Restaurant struct {
 	Meals        []*Meal      `json:"meals,omitempty"`
 	Coords       *Coordinates `json:"coords,omitempty"`
 	Distance     *float64     `json:"distance,omitempty"`
+	Liked        *bool        `json:"liked,omitempty"`
 }
 
 type School struct {

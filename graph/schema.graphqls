@@ -49,6 +49,7 @@ type Restaurant {
   meals: [Meal]
   coords: Coordinates
   distance: Float
+  liked: Boolean
 }
 
 type Meal {

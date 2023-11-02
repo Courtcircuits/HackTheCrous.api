@@ -103,6 +103,22 @@ func (db *PostgresDatabase) GetUserByEmail(mail string) (types.User, error) {
 	return user, nil
 }
 
+func (db *PostgresDatabase) RestaurantHasBeenLiked(id_restaurant int, id_user int) (bool, error) {
+	client, err := db.Connect()
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+
+	query := `SELECT EXISTS(SELECT * FROM favoriterestaurant WHERE idrestaurant=$1 and iduser=$2);`
+
+	var exists bool
+
+	err = client.QueryRow(query, id_restaurant, id_user).Scan(&exists)
+
+	return exists, err
+}
+
 func (db *PostgresDatabase) GetUserByAuthCustomName(custom_name string) (types.User, error) {
 	client, err := db.Connect()
 	if err != nil {

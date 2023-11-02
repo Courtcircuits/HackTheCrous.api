@@ -24,6 +24,7 @@ import (
 func (r *foodResolver) Restaurants(ctx context.Context, obj *model.Food) ([]*model.Restaurant, error) {
 	restaurants, err := api.GetServer().Store.GetRestaurantsFromFood(*obj.Names[0])
 	if err != nil {
+		log.Printf("error while getting restaurants from food : %q\n", err)
 		return nil, err
 	}
 	var restaurants_gql []*model.Restaurant
@@ -310,6 +311,17 @@ func (r *restaurantResolver) Distance(ctx context.Context, obj *model.Restaurant
 	})
 
 	return &distance, nil
+}
+
+// Liked is the resolver for the liked field.
+func (r *restaurantResolver) Liked(ctx context.Context, obj *model.Restaurant) (*bool, error) {
+	gc, err := api.GetGinContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id_user := gc.GetInt("id")
+	has_been_liked, err := api.GetServer().Store.RestaurantHasBeenLiked(id_user, *obj.Idrestaurant)
+	return &has_been_liked, err
 }
 
 // Food returns FoodResolver implementation.
