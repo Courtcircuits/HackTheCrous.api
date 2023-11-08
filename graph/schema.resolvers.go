@@ -320,7 +320,7 @@ func (r *restaurantResolver) Liked(ctx context.Context, obj *model.Restaurant) (
 		return nil, err
 	}
 	id_user := gc.GetInt("id")
-	has_been_liked, err := api.GetServer().Store.RestaurantHasBeenLiked(id_user, *obj.Idrestaurant)
+	has_been_liked, err := api.GetServer().Store.RestaurantHasBeenLiked( *obj.Idrestaurant, id_user)
 	return &has_been_liked, err
 }
 
