@@ -1,3 +1,15 @@
+DROP TABLE IF EXISTS favoriterestaurant;
+DROP TABLE IF EXISTS federal_credentials;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS meal;
+DROP TABLE IF EXISTS uselessfoodname;
+DROP TABLE IF EXISTS suggestions_restaurant;
+DROP TABLE IF EXISTS cat_suggestions;
+DROP TABLE IF EXISTS restaurant;
+DROP TABLE IF EXISTS school;
+DROP TABLE IF EXISTS foodname;
+DROP TABLE IF EXISTS food;
+
 CREATE TABLE school(
     idschool serial PRIMARY KEY,
     name TEXT,
