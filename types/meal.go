@@ -59,7 +59,10 @@ func ScanMeals(rows *sql.Rows) (Meal, error) {
 		return Meal{}, err
 	}
 
+	log.Println(sql_meals.Foodies.String)
+
 	foods, err := ParseFoods(sql_meals.Foodies.String)
+	log.Println(foods)
 
 	if err != nil {
 		log.Println(err.Error())

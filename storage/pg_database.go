@@ -34,7 +34,7 @@ func NewPostgresDatabase() *PostgresDatabase {
 }
 
 func (db *PostgresDatabase) Connect() (*sql.DB, error) {
-	connStr := "user=" + db.user + " password=" + db.password + " host=" + db.host + " port=" + db.port + " dbname=" + db.database
+	connStr := "user=" + db.user + " password=" + db.password + " host=" + db.host + " port=" + db.port + " dbname=" + db.database +" sslmode=disable"
 	client, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err

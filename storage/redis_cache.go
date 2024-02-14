@@ -19,8 +19,6 @@ func NewRedisCache() *RedisCache {
 	return &RedisCache{
 		client: redis.NewClient(&redis.Options{
 			Addr:     util.Get("REDISHOST") + ":" + util.Get("REDISPORT"),
-			Password: util.Get("REDISPASSWORD"),
-			Username: util.Get("REDISUSER"),
 		}),
 	}
 }

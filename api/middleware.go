@@ -11,6 +11,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func AuthRewriteMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		cookies := ctx.Request.Cookies()
+		var token string
+		for _, cookie := range cookies {
+			if strings.HasPrefix(cookie.Value, "token=") {
+				token = strings.TrimPrefix(cookie.Value, "token=")
+			}
+		}
+		ctx.Request.Header.Del("Authorization")
+		ctx.Request.Header.Del("Cookie")
+		ctx.Request.Header.Set("Authorization", "Bearer "+token)
+		ctx.Next()
+	}
+}
+
 func JWTAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		auth_header := ctx.GetHeader("Authorization")
