@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/Courtcircuits/HackTheCrous.api/storage"
@@ -79,6 +80,7 @@ func NewServer(listenAddr string, store storage.PostgresDatabase, cache *storage
 func (s *Server) Start() error {
 
 	critical_route := s.router.Group("/")
+	critical_route.Use(AuthRewriteMiddleware())
 	critical_route.Use(JWTAuth())
 	critical_route.Use(GinContextMiddleware())
 
@@ -87,6 +89,8 @@ func (s *Server) Start() error {
 	s.router.POST("/logout", s.Logout)
 	s.router.GET("/auth", s.GoogleAuth)
 	s.router.GET("/auth/callback", s.GoogleAuthCallback)
+	s.router.GET("/restaurants", s.GetRestaurants)
+	s.router.GET("/restaurants/:id", s.GetRestaurant)
 
 	critical_route.POST("/graphql", s.GraphQLHandler)
 	critical_route.POST("/mail/confirm", s.SendConfirmationMail)
@@ -177,6 +181,7 @@ func (s *Server) Login(c *gin.Context) {
 		c.AbortWithStatus(401)
 		return
 	}
+	c.SetCookie("token", user.Auth_token.String, 3600, "/", util.Get("CLIENT_URL"), false, true)
 	c.JSON(200, gin.H{
 		"type":         "success",
 		"message":      "Logged in",
@@ -279,13 +284,13 @@ func (s *Server) ConfirmMail(c *gin.Context) {
 	err := s.Store.ConfirmMail(id, payload.Nonce)
 	if err != nil {
 		c.JSON(400, gin.H{
-			"type": "Error",
+			"type":    "Error",
 			"message": err,
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"type": "Success",
+		"type":    "Success",
 		"message": "Mail confirmed",
 	})
 }
@@ -311,4 +316,27 @@ func (s *Server) SendAuthToken(user *types.User, credentials Credentials) error 
 	}
 
 	return nil
+}
+
+func (s *Server) GetRestaurants(c *gin.Context) {
+	restaurants, err := s.Store.GetRestaurants()
+	if err != nil {
+		c.AbortWithStatus(500)
+		return
+	}
+	c.JSON(200, restaurants)
+}
+
+func (s *Server) GetRestaurant(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(400)
+		return
+	}
+	restaurant, err := s.Store.GetMealsFromRestaurant(id)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return
+	}
+	c.JSON(200, restaurant)
 }

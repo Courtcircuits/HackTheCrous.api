@@ -32,7 +32,9 @@ CREATE TABLE suggestions_restaurant(
     idsuggestion serial PRIMARY KEY,
     keyword TEXT,
     idrestaurant INT,
-    CONSTRAINT fk_idrestaurant_sr FOREIGN KEY (idrestaurant) REFERENCES restaurant(idrestaurant) ON DELETE CASCADE ON UPDATE CASCADE
+    idcat INT,
+    CONSTRAINT fk_idrestaurant_sr FOREIGN KEY (idrestaurant) REFERENCES restaurant(idrestaurant) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_idcat_sr FOREIGN KEY (idcat) REFERENCES cat_suggestions(idcat) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE uselessfoodname (

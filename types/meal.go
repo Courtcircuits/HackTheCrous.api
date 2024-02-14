@@ -22,7 +22,7 @@ type Food struct {
 }
 
 type Foods struct {
-	Food []string `json:"food"`
+	Food []string `json:"content"`
 	Type string   `json:"type"`
 }
 
@@ -59,7 +59,10 @@ func ScanMeals(rows *sql.Rows) (Meal, error) {
 		return Meal{}, err
 	}
 
+	log.Println(sql_meals.Foodies.String)
+
 	foods, err := ParseFoods(sql_meals.Foodies.String)
+	log.Println(foods)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -115,7 +118,7 @@ func (m Meal) ToGraphQL() *model.Meal {
 func (f Food) ToGraphQL() *model.Food {
 	fake_cat := "food"
 	return &model.Food{
-		Names:       []*string{&f.Name},
-		Category:    &fake_cat,
+		Names:    []*string{&f.Name},
+		Category: &fake_cat,
 	}
 }
