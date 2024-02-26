@@ -91,6 +91,7 @@ func (s *Server) Start() error {
 	s.router.GET("/auth/callback", s.GoogleAuthCallback)
 	s.router.GET("/restaurants", s.GetRestaurants)
 	s.router.GET("/restaurants/:id", s.GetRestaurant)
+	s.router.GET("/search", s.SearchRestaurant)
 
 	critical_route.POST("/graphql", s.GraphQLHandler)
 	critical_route.POST("/mail/confirm", s.SendConfirmationMail)
@@ -339,4 +340,18 @@ func (s *Server) GetRestaurant(c *gin.Context) {
 		return
 	}
 	c.JSON(200, restaurant)
+}
+
+func (s *Server) SearchRestaurant(c *gin.Context) {
+	// TODO
+	query := c.Request.URL.Query().Get("q")
+	restaurants, err := s.Store.SearchRestaurant(query)
+	if err != nil {
+		c.AbortWithStatusJSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, restaurants)
 }
