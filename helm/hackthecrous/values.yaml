@@ -1,0 +1,9 @@
+service:
+  internalPort: 4000
+  externalPort: 4000
+
+image:
+  repository: "Milou666/hackthecrous"
+  tag: "latest"
+
+replicaCount: 1
