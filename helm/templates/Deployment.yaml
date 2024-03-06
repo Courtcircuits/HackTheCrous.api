@@ -37,7 +37,7 @@ spec:
                 name: {{ .Values.googleAuthSecretName }}
                 key: google_auth_client_id
           - name: HASH_ROUND
-            value: {{ .Values.hashRound }}
+            value: {{ .Values.hashRound | quote }}
           - name: PORT
             value: {{ .Values.service.internalPort | quote }}
           - name: JWT_SECRET
