@@ -8,6 +8,8 @@ tag-prefix: '[vV]'
 major-version-bump-message: 'major:'
 minor-version-bump-message: '\s?(feature|minor):'
 patch-version-bump-message: '\s?(fix|patch):'
+continuous-delivery-fallback-tag-format: '{BranchName}.ci{0}'
+continuous-delivery-fallback-tag-number: 0
 no-bump-message: '\+semver:\s?(none|skip)'
 legacy-semver-padding: 4
 build-metadata-padding: 4
