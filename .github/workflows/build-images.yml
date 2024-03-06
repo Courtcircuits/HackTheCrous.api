@@ -6,34 +6,13 @@ on:
       - main
 
 jobs:
-  determine_version:
-    name: calculate version
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.gitversion.outputs.semver }}
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: install gitversion
-        uses: gittools/actions/gitversion/setup@v0
-        with:
-          versionspec: "6.x"
-          includeprerelease: true
-      - name: determine version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0
   push_to_registry:
-    if: >
-      contains(github.event.head_commit.message, 'release')
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
-    needs: determine_version
     env:
-      TAG: ${{ needs.determine_version.outputs.tag }}
+      TAG: ${{ github.sha }}
     outputs:
-      tag: ${{ needs.determine_version.outputs.tag }}
+      tag: ${{ github.sha}}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -55,11 +34,9 @@ jobs:
           push: true
           tags: |
             milou666/${{ secrets.DOCKER_IMAGE_NAME }}:latest
-            milou666/${{ secrets.DOCKER_IMAGE_NAME }}:${{ env.TAG }}
+            milou666/${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
   deploy:
-    if: >
-      contains(github.event.head_commit.message, 'release')
     name: deploy_project
     runs-on: ubuntu-latest
     needs: push_to_registry
