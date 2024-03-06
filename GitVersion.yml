@@ -4,8 +4,8 @@ assembly-file-versioning-scheme: MajorMinorPatch
 assembly-informational-format: "{InformationalVersion}"
 increment: Inherit
 continuous-delivery-fallback-tag: ci
-tag-prefix: "[vV]"
-major-version-bump-message: "major:"
+tag-prefix: '[vV]'
+major-version-bump-message: 'major:'
 minor-version-bump-message: '\s?(feature|minor):'
 patch-version-bump-message: '\s?(fix|patch):'
 no-bump-message: '\+semver:\s?(none|skip)'
@@ -20,4 +20,4 @@ mode: ContinuousDeployment
 branches:
   main:
     mode: ContinuousDeployment
-    tag: ""
+    tag: ''
