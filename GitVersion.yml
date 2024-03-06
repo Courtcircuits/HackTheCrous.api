@@ -16,8 +16,8 @@ tag-pre-release-weight: 60000
 commit-message-incrementing: Enabled
 merge-message-formats: {}
 update-build-number: true
-mode: ContinuousDeployment
+mode: ContinuousDelivery
 branches:
   main:
-    mode: ContinuousDeployment
+    mode: ContinuousDelivery
     tag: ''
