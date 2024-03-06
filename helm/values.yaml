@@ -10,26 +10,26 @@ replicaCount: 1
 clientUrl: "http://localhost:3000"
 fullServerUrl: "http://localhost:4000"
 googleAuthSecretName: "htc-secret"
-hashRound: 10
+hashRound: "10"
 jwtSecretName: "htc-secret"
 
 postgresql:
   database: "hackthecrous"
   host: "pgsql-postgresql.hackthecrous.svc.cluster.local"
   secretName: "htc-secret"
-  port: 5432
+  port: "5432"
   username: "postgres"
 
 redis:
   host: "hackthecrous-redis-master.hackthecrous.svc.cluster.local"
-  port: 7652
+  port: "7652"
 
 serverUrl: "http://localhost:4000"
 mail:
   mail_address: "hackthecrus@gmail.com"
   smtp_host: "smtp.gmail.com"
   secretName: "htc-secret"
-  smtp_port: 587
+  smtp_port: "587"
 
 ingress:
   host: "hack.ratathune.fr"
