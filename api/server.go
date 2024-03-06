@@ -90,6 +90,7 @@ func (s *Server) Start() error {
 	s.router.GET("/auth", s.GoogleAuth)
 	s.router.GET("/auth/callback", s.GoogleAuthCallback)
 	s.router.GET("/restaurants", s.GetRestaurants)
+	s.router.GET("/restaurants/meals/:id", s.GetRestaurantMeals)
 	s.router.GET("/restaurants/:id", s.GetRestaurant)
 	s.router.GET("/search", s.SearchRestaurant)
 
@@ -328,7 +329,7 @@ func (s *Server) GetRestaurants(c *gin.Context) {
 	c.JSON(200, restaurants)
 }
 
-func (s *Server) GetRestaurant(c *gin.Context) {
+func (s *Server) GetRestaurantMeals(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithStatus(400)
@@ -340,6 +341,21 @@ func (s *Server) GetRestaurant(c *gin.Context) {
 		return
 	}
 	c.JSON(200, restaurant)
+}
+
+func (s *Server) GetRestaurant(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(400)
+		return
+	}
+	restaurant, err := s.Store.GetRestaurant(id)
+	if err != nil {
+		c.AbortWithStatus(500)
+		return
+	}
+	c.JSON(200, restaurant)
+
 }
 
 func (s *Server) SearchRestaurant(c *gin.Context) {
