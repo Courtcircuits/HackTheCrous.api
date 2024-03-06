@@ -3,7 +3,7 @@ service:
   externalPort: 4000
 
 image:
-  repository: "Milou666/hackthecrous"
+  repository: "milou666/hackthecrous-back"
 
 replicaCount: 1
 
