@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: {{ .Release.Name }}-deployment
+  namespace: {{ .Release.Namespace }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name}}-deployment
+  replicas: {{ default 1 .Values.replicaCount | int }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name}}-deployment
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ .Values.service.internalPort | int }}
+      env:
+      - name: CLIENT_URL
+        value: {{ .Values.clientUrl }}
+      - name: FULL_SERVER_URL
+        value: {{ .Values.fullServerUrl }}
+      - name: GOOGLE_AUTH_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.googleAuthSecretName }}
+            key: google_auth_secret
+      - name: GOOGLE_AUTH_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.googleAuthSecretName }}
+            key: google_auth_client_id
+      - name: HASH_ROUND
+        value: {{ .Values.hashRound }}
+      - name: PORT
+        value: {{ .Values.service.internalPort | int }}
+      - name: JWT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.jwtSecretName }}
+            key: jwt_secret
+      - name: PG_DATABASE
+        value: {{ .Values.postgresql.database }}
+      - name: PG_HOST
+        value: {{ .Values.postgresql.host }}
+      - name: PG_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.postgresql.secretName }}
+            key: postgresql-password
+      - name: PG_PORT
+        value: {{ .Values.postgresql.port }}
+      - name: PG_USER
+        value: {{ .Values.postgresql.username }}
+      - name: REDISHOST
+        value: {{ .Values.redis.host }}
+      - name: REDISPORT
+        value: {{ .Values.redis.port }}
+      - name: SERVER_URL
+        value: {{ .Values.serverUrl }}
+      - name: MAIL_SMTP
+        value: {{ .Values.mail.mail_address }}
+      - name: SMTP_HOST
+        value: {{ .Values.mail.smtp_host }}
+      - name: MAIL_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.mail.secretName }}
+            key: mail-password
+      - name: SMTP_PORT
+        value: {{ .Values.mail.smtp_port }}
+      - name: TEMPLATE_PATH
+        value: "./template/mail.html"
+
+    
