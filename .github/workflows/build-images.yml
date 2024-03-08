@@ -45,12 +45,15 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
+        with:
+          repository: Courtcircuits/HackTheCrous.charts
+          token: "${{ secret.DEPLOYMENT_TOKEN }}"
       - name: Update values.yaml
         run: |
           sudo add-apt-repository ppa:rmescandon/yq
           sudo apt update
           sudo apt install yq -y
-          cd helm
+          cd charts/backend
           yq eval -i '.image.tag = env(TAG)' tag.yaml
           git config --global user.name "CI deployment"
           git config --global user.email "ci.deployment.hackthecrous@users.noreply.github.com"

@@ -93,6 +93,7 @@ func (s *Server) Start() error {
 	s.router.GET("/restaurants/meals/:id", s.GetRestaurantMeals)
 	s.router.GET("/restaurants/:id", s.GetRestaurant)
 	s.router.GET("/search", s.SearchRestaurant)
+	s.router.GET("/418", s.EasterEgg)
 
 	critical_route.POST("/graphql", s.GraphQLHandler)
 	critical_route.POST("/mail/confirm", s.SendConfirmationMail)
@@ -318,6 +319,13 @@ func (s *Server) SendAuthToken(user *types.User, credentials Credentials) error 
 	}
 
 	return nil
+}
+
+func (s *Server) EasterEgg(c *gin.Context) {
+	c.JSON(418, gin.H{
+		"message": "Not a teapot",
+		"url":     "https://twitter.com/not_a_shower",
+	})
 }
 
 func (s *Server) GetRestaurants(c *gin.Context) {
