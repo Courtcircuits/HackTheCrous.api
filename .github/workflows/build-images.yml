@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Courtcircuits/HackTheCrous.charts
-          token: "${{ secret.DEPLOYMENT_TOKEN }}"
+          token: "${{ secrets.DEPLOYMENT_TOKEN }}"
       - name: Update values.yaml
         run: |
           sudo add-apt-repository ppa:rmescandon/yq
