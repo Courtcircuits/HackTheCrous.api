@@ -12,6 +12,7 @@ type Restaurant struct {
 	Url       string           `json:"url,omitempty"`
 	Name      string           `json:"name,omitempty"`
 	Gps_coord util.Coordinates `json:"gps_coord,omitempty"`
+	Hours     string           `json:"hours,omitempty"`
 }
 
 func ScanRestaurants(row *sql.Rows) (Restaurant, error) {
@@ -20,10 +21,11 @@ func ScanRestaurants(row *sql.Rows) (Restaurant, error) {
 		Url          sql.NullString `json:"url,omitempty"`
 		Name         sql.NullString `json:"name,omitempty"`
 		Gpscoord     sql.NullString `json:"gpscoord,omitempty"`
+		Hours        sql.NullString `json:"hours,omitempty"`
 	}
 
 	var sql_restaurant SQL_restaurant
-	err := row.Scan(&sql_restaurant.Idrestaurant, &sql_restaurant.Name, &sql_restaurant.Url, &sql_restaurant.Gpscoord)
+	err := row.Scan(&sql_restaurant.Idrestaurant, &sql_restaurant.Name, &sql_restaurant.Url, &sql_restaurant.Gpscoord, &sql_restaurant.Hours)
 
 	if err != nil {
 		return Restaurant{}, err
@@ -36,6 +38,7 @@ func ScanRestaurants(row *sql.Rows) (Restaurant, error) {
 		Name:      sql_restaurant.Name.String,
 		Url:       sql_restaurant.Url.String,
 		Gps_coord: coords,
+		Hours:     sql_restaurant.Hours.String,
 	}, err
 }
 
@@ -45,10 +48,11 @@ func ScanRestaurant(row *sql.Row) (Restaurant, error) {
 		Url          sql.NullString `json:"url,omitempty"`
 		Name         sql.NullString `json:"name,omitempty"`
 		Gpscoord     sql.NullString `json:"gpscoord,omitempty"`
+		Hours        sql.NullString `json:"hours,omitempty"`
 	}
 
 	var sql_restaurant SQL_restaurant
-	err := row.Scan(&sql_restaurant.Idrestaurant, &sql_restaurant.Name, &sql_restaurant.Url, &sql_restaurant.Gpscoord)
+	err := row.Scan(&sql_restaurant.Idrestaurant, &sql_restaurant.Name, &sql_restaurant.Url, &sql_restaurant.Gpscoord, &sql_restaurant.Hours)
 
 	if err != nil {
 		return Restaurant{}, err
@@ -61,6 +65,7 @@ func ScanRestaurant(row *sql.Row) (Restaurant, error) {
 		Name:      sql_restaurant.Name.String,
 		Url:       sql_restaurant.Url.String,
 		Gps_coord: coords,
+		Hours:     sql_restaurant.Hours.String,
 	}, err
 }
 

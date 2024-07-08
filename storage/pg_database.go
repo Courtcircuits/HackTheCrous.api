@@ -34,7 +34,7 @@ func NewPostgresDatabase() *PostgresDatabase {
 }
 
 func (db *PostgresDatabase) Connect() (*sql.DB, error) {
-	connStr := "user=" + db.user + " password=" + db.password + " host=" + db.host + " port=" + db.port + " dbname=" + db.database +" sslmode=disable"
+	connStr := "user=" + db.user + " password=" + db.password + " host=" + db.host + " port=" + db.port + " dbname=" + db.database + " sslmode=disable"
 	client, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
@@ -305,7 +305,7 @@ func (db *PostgresDatabase) DeleteUserByMail(email string) error {
 }
 
 func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
-	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant`
+	query := `SELECT idrestaurant, name, url, gpscoord, hours FROM restaurant`
 
 	client, err := db.Connect()
 	if err != nil {
@@ -318,7 +318,7 @@ func (db *PostgresDatabase) GetRestaurants() ([]types.Restaurant, error) {
 }
 
 func (db *PostgresDatabase) GetRestaurant(id_restaurant int) (types.Restaurant, error) {
-	query := `SELECT idrestaurant, name, url, gpscoord FROM restaurant WHERE idrestaurant=$1`
+	query := `SELECT idrestaurant, name, url, gpscoord, hours FROM restaurant WHERE idrestaurant=$1`
 
 	client, err := db.Connect()
 	if err != nil {
