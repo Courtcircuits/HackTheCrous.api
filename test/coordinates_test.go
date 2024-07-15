@@ -12,7 +12,7 @@ func EqualsFloat(a, b, delta float64) bool {
 }
 
 func TestCoordinatesParsing(t *testing.T) {
-	coords, err := util.Parse_coordinates("(43.6349531,3.870764)")
+	coords, err := util.ParseCoordinates("(43.6349531,3.870764)")
 
 	if err != nil {
 		t.Fatalf("shouldn't throw error %q\n", err)

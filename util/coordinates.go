@@ -4,8 +4,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-
-	"github.com/Courtcircuits/HackTheCrous.api/graph/model"
 )
 
 type Coordinates struct {
@@ -13,7 +11,7 @@ type Coordinates struct {
 	Y float64
 }
 
-func Parse_coordinates(coordinates_string string) (Coordinates, error) {
+func ParseCoordinates(coordinates_string string) (Coordinates, error) {
 	coordinates_arr := strings.Split(coordinates_string[1:len(coordinates_string)-1], ",")
 
 	x, err := strconv.ParseFloat(coordinates_arr[0], 32)
@@ -32,13 +30,6 @@ func Parse_coordinates(coordinates_string string) (Coordinates, error) {
 		X: x,
 		Y: y,
 	}, nil
-}
-
-func (c *Coordinates) ToGraphQL() *model.Coordinates {
-	return &model.Coordinates{
-		X: &c.X,
-		Y: &c.Y,
-	}
 }
 
 func ComputeDistance(a, b Coordinates) float64 {
