@@ -8,13 +8,10 @@ class RestaurantSearchService
   def perform
     return Restaurant.none if @query.blank?
 
-
-    Restaurant.find_by_sql([
-      "SELECT * FROM restaurant
-WHERE idrestaurant IN (SELECT r.idrestaurant FROM restaurant r JOIN suggestions_restaurant sr ON sr.idrestaurant=r.idrestaurant WHERE UPPER(sr.keyword) LIKE :query)",
-{
-  query: "%#{@query.upcase}%"
-}
-    ])
+    Restaurant.joins(:suggestions_restaurant)
+             .where("UPPER(suggestions_restaurant.keyword) LIKE :query", query: "%#{@query.upcase}%")
+             .distinct
+             .page(@page)
+             .per(@per_page)
   end
 end

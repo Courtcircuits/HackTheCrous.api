@@ -21,7 +21,6 @@ development:
 test:
   <<: *default
 
-
 # SQLite3 write its data on the local filesystem, as such it requires
 # persistent disks. If you are deploying to a managed service, you should
 # make sure it provides disk persistence, as many don't.
@@ -31,9 +30,9 @@ test:
 production:
   adapter: postgresql
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  database: <%= ENV.fetch("PG_DATABASE") %>
-  password: <%= ENV.fetch("PG_PASSWORD") %>
-  username: <%= ENV.fetch("PG_USER") %>
-  host: <%= ENV.fetch("PG_HOST") %>
+  database: <%= ENV.fetch("PG_DATABASE") { "hackthecrous" } %>
+  password: <%= ENV.fetch("PG_PASSWORD") { "postgres" } %>
+  username: <%= ENV.fetch("PG_USER") { "postgres" } %>
+  host: <%= ENV.fetch("PG_HOST") { "0.0.0.0" } %>
 
   # database: path/to/persistent/storage/production.sqlite3
