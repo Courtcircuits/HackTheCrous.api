@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <title><%= config.page_title %></title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+
+  <body>
+    <script
+      id="api-reference"
+      data-configuration=<%= config.scalar_configuration_to_json %>
+    >
+      <%= config.specification %>
+    </script>
+
+    <script src="<%= config.library_url %>"></script>
+  </body>
+</html>
