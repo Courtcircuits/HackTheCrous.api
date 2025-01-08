@@ -29,5 +29,11 @@ test:
 # Similarly, if you deploy your application as a Docker container, you must
 # ensure the database is located in a persisted volume.
 production:
-  <<: *default
+  adapter: postgresql
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  database: <%= ENV.fetch("PG_DATABASE") %>
+  password: <%= ENV.fetch("PG_PASSWORD") %>
+  username: <%= ENV.fetch("PG_USER") %>
+  host: <%= ENV.fetch("PG_HOST") %>
+
   # database: path/to/persistent/storage/production.sqlite3
