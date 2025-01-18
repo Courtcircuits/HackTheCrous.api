@@ -8,6 +8,10 @@ module V2
         render json: RestaurantSerializer.new(restaurants).serializable_hash.to_json
       end
 
+      def schools
+        render json: RestaurantSchoolProximityService.find_for_restaurant(params[:id]).to_json
+      end
+
       def show
         restaurant = Restaurant.find(params[:id])
         render json: RestaurantSerializer.new(restaurant).serializable_hash.to_json

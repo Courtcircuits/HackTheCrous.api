@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
       get "meals/:id", to: "meal#find"
       get "search", to: "restaurant#search"
+      get "schools/:id", to: "restaurant#schools"
       get ":id", to: "restaurant#show"
     end
   end
@@ -20,6 +21,3 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 end
-
-# SELECT idrestaurant, url, name, gpscoord, hours FROM restaurant
-# WHERE idrestaurant IN (SELECT r.idrestaurant FROM restaurant r JOIN suggestions_restaurant sr ON sr.idrestaurant=r.idrestaurant WHERE UPPER(sr.keyword) LIKE $1)

@@ -1,420 +1,647 @@
-openapi: 3.0.1
-info:
-  title: Hack The Crous
-  description: ''
-  version: 1.0.0
-tags: []
-paths:
-  /v2/restaurants/search:
-    get:
-      summary: Look for a restaurant leveraging the search engine
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: q
-          in: query
-          description: ''
-          required: false
-          example: pizza
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items: &ref_0
-                      $ref: '#/components/schemas/Restaurant'
-                required:
-                  - data
-              examples:
-                '1':
-                  summary: Success
-                  value:
-                    data:
-                      - id: '580'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-richter/
-                          name: Cafet’ Richter
-                          hours: 07:30 - 17:00
-                          gps_coord:
-                            X: 43.6029926
-                            'Y': 3.8989596
-          headers: {}
-      security: []
-  /v2/restaurants/:
-    get:
-      summary: List all restaurants
-      deprecated: false
-      description: ''
-      tags: []
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items: *ref_0
-                required:
-                  - data
-              examples:
-                '1':
-                  summary: Success
-                  value:
-                    data:
-                      - id: '570'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/brasserie-boutonnet/
-                          name: Brasserie Boutonnet
-                          hours: 07:30 - 22:00
-                          gps_coord:
-                            X: 43.623478
-                            'Y': 3.869285
-                      - id: '571'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/brasserie-triolet/
-                          name: Brasserie Triolet
-                          hours: 11:15 - 14:00
-                          gps_coord:
-                            X: 43.631014
-                            'Y': 3.860346
-                      - id: '573'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-campus/
-                          name: Cafet’ Campus
-                          hours: 08:00 - 21:00
-                          gps_coord:
-                            X: 43.6349531
-                            'Y': 3.870764
-                      - id: '575'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-droit/
-                          name: Cafet’ Droit
-                          hours: 07:30 - 18:00
-                          gps_coord:
-                            X: 43.614331021646
-                            'Y': 3.8765513974202
-                      - id: '577'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-medecine/
-                          name: Cafet’ Médecine
-                          hours: 07:30 - 18:00
-                          gps_coord:
-                            X: 43.632593
-                            'Y': 3.8513996
-                      - id: '579'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-paul-valery-um3/
-                          name: Cafet’ Paul Valéry (UM3)
-                          hours: 07:30 - 18:00
-                          gps_coord:
-                            X: 43.633283319739
-                            'Y': 3.8686665513865
-                      - id: '581'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-space/
-                          name: Cafet’ (S)PACE
-                          hours: 07:30 - 18:00
-                          gps_coord:
-                            X: 43.63311528039
-                            'Y': 3.8634475550933
-                      - id: '584'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-trioletto/
-                          name: Cafet’ Trioletto
-                          hours: 07:30 - 21:00
-                          gps_coord:
-                            X: 43.62941
-                            'Y': 3.860417
-                      - id: '572'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-boutonnet/
-                          name: Cafet’ Boutonnet
-                          hours: 07:30 - 22:00
-                          gps_coord:
-                            X: 43.6234171
-                            'Y': 3.8694057
-                      - id: '574'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-chimie/
-                          name: Cafet’ Chimie
-                          hours: 07:30 - 16:00
-                          gps_coord:
-                            X: 43.6356351
-                            'Y': 3.8663042
-                      - id: '576'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-fde/
-                          name: Cafet’ FDE
-                          hours: 07:30 - 18:00
-                          gps_coord:
-                            X: 43.61986
-                            'Y': 3.869241
-                      - id: '578'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-passerelle/
-                          name: Cafet’ Passerelle
-                          hours: 07:30 - 17:00
-                          gps_coord:
-                            X: 43.636892
-                            'Y': 3.854655
-                      - id: '580'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-richter/
-                          name: Cafet’ Richter
-                          hours: 07:30 - 17:00
-                          gps_coord:
-                            X: 43.6029926
-                            'Y': 3.8989596
-                      - id: '582'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-st-charles/
-                          name: Cafet’ St Charles
-                          hours: 07:45 - 17:45
-                          gps_coord:
-                            X: 43.616229482595
-                            'Y': 3.8738188974203
-                      - id: '583'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/cafet-staps/
-                          name: Cafet’ Staps
-                          hours: 07:30 - 16:00
-                          gps_coord:
-                            X: 43.638849
-                            'Y': 3.848205
-                      - id: '585'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/resto-u-richter/
-                          name: Resto U’ Richter
-                          hours: 11:30 - 13:30
-                          gps_coord:
-                            X: 43.6029926
-                            'Y': 3.8989596
-                      - id: '586'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/resto-u-triolet/
-                          name: Resto U’ Triolet
-                          hours: 11:30 - 13:30
-                          gps_coord:
-                            X: 43.6308822
-                            'Y': 3.8604739
-                      - id: '587'
-                        type: restaurant
-                        attributes:
-                          url: >-
-                            https://www.crous-montpellier.fr/restaurant/resto-u-vert-bois/
-                          name: Resto U’ Vert-Bois
-                          hours: 11:15 - 13:45
-                          gps_coord:
-                            X: 43.6349357
-                            'Y': 3.8706288
-          headers: {}
-      security: []
-  /v2/restaurants/{id}:
-    get:
-      summary: Find restaurant by ID
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data: *ref_0
-                required:
-                  - data
-              examples:
-                '1':
-                  summary: Success
-                  value:
-                    data:
-                      id: '570'
-                      type: restaurant
-                      attributes:
-                        url: >-
-                          https://www.crous-montpellier.fr/restaurant/brasserie-boutonnet/
-                        name: Brasserie Boutonnet
-                        hours: 07:30 - 22:00
-                        gps_coord:
-                          X: 43.623478
-                          'Y': 3.869285
-          headers: {}
-      security: []
-  /v2/restaurants/meals/{id}:
-    get:
-      summary: Find a restaurant available meals
-      deprecated: false
-      description: ''
-      tags: []
-      parameters:
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Meal'
-          headers: {}
-      security: []
-  /up:
-    get:
-      summary: Health endpoint
-      deprecated: false
-      description: ''
-      tags: []
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
-          headers: {}
-      security: []
-components:
-  schemas:
-    Restaurant:
-      type: object
-      properties:
-        id:
-          type: string
-          description: ID
-        type:
-          type: string
-          description: Type of resource. Here it will always be restaurant
-        attributes:
-          type: object
-          properties:
-            url:
-              type: string
-              description: URL of the crous datasource
-            name:
-              type: string
-              description: Name of the restaurant
-            hours:
-              type: string
-              description: Opening and closing hours
-            gps_coord:
-              type: object
-              properties:
-                X:
-                  type: number
-                'Y':
-                  type: number
-              required:
-                - X
-                - 'Y'
-              description: GPS Coordinates
-          required:
-            - url
-            - name
-            - hours
-            - gps_coord
-      required:
-        - id
-        - type
-        - attributes
-    Meal:
-      type: object
-      properties:
-        idmeal:
-          type: string
-          description: ID for the meal
-        typemeal:
-          type: string
-          description: >-
-            Type of current meal. Can be either "petit-déjeuner", "déjeuner" or
-            "dîner"
-        foodies:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-                description: Where the meal is available within the restaurant
-              content:
-                type: array
-                items:
-                  type: string
-                description: List of meals
-            required:
-              - type
-              - content
-          description: List of meals and where they are available
-      required:
-        - idmeal
-        - typemeal
-        - foodies
-  securitySchemes: {}
-servers:
-  - url: https://api.hackthecrous.com
-    description: Prod Env
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Hack The Crous",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [],
+  "paths": {
+    "/v2/restaurants/search": {
+      "get": {
+        "summary": "Look for a restaurant leveraging the search engine",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "pizza",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Restaurant"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "Success",
+                    "value": {
+                      "data": [
+                        {
+                          "id": "580",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-richter/",
+                            "name": "Cafet’ Richter",
+                            "hours": "07:30 - 17:00",
+                            "gps_coord": {
+                              "X": 43.6029926,
+                              "Y": 3.8989596
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/v2/restaurants/schools/{id}": {
+      "get": {
+        "summary": "Get schools near a restaurant",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Restaurant"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "Success",
+                    "value": {
+                      "data": [
+                        {
+                          "id": "580",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-richter/",
+                            "name": "Cafet’ Richter",
+                            "hours": "07:30 - 17:00",
+                            "gps_coord": {
+                              "X": 43.6029926,
+                              "Y": 3.8989596
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/v2/restaurants/": {
+      "get": {
+        "summary": "List all restaurants",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Restaurant"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "Success",
+                    "value": {
+                      "data": [
+                        {
+                          "id": "570",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/brasserie-boutonnet/",
+                            "name": "Brasserie Boutonnet",
+                            "hours": "07:30 - 22:00",
+                            "gps_coord": {
+                              "X": 43.623478,
+                              "Y": 3.869285
+                            }
+                          }
+                        },
+                        {
+                          "id": "571",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/brasserie-triolet/",
+                            "name": "Brasserie Triolet",
+                            "hours": "11:15 - 14:00",
+                            "gps_coord": {
+                              "X": 43.631014,
+                              "Y": 3.860346
+                            }
+                          }
+                        },
+                        {
+                          "id": "573",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-campus/",
+                            "name": "Cafet’ Campus",
+                            "hours": "08:00 - 21:00",
+                            "gps_coord": {
+                              "X": 43.6349531,
+                              "Y": 3.870764
+                            }
+                          }
+                        },
+                        {
+                          "id": "575",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-droit/",
+                            "name": "Cafet’ Droit",
+                            "hours": "07:30 - 18:00",
+                            "gps_coord": {
+                              "X": 43.614331021646,
+                              "Y": 3.8765513974202
+                            }
+                          }
+                        },
+                        {
+                          "id": "577",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-medecine/",
+                            "name": "Cafet’ Médecine",
+                            "hours": "07:30 - 18:00",
+                            "gps_coord": {
+                              "X": 43.632593,
+                              "Y": 3.8513996
+                            }
+                          }
+                        },
+                        {
+                          "id": "579",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-paul-valery-um3/",
+                            "name": "Cafet’ Paul Valéry (UM3)",
+                            "hours": "07:30 - 18:00",
+                            "gps_coord": {
+                              "X": 43.633283319739,
+                              "Y": 3.8686665513865
+                            }
+                          }
+                        },
+                        {
+                          "id": "581",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-space/",
+                            "name": "Cafet’ (S)PACE",
+                            "hours": "07:30 - 18:00",
+                            "gps_coord": {
+                              "X": 43.63311528039,
+                              "Y": 3.8634475550933
+                            }
+                          }
+                        },
+                        {
+                          "id": "584",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-trioletto/",
+                            "name": "Cafet’ Trioletto",
+                            "hours": "07:30 - 21:00",
+                            "gps_coord": {
+                              "X": 43.62941,
+                              "Y": 3.860417
+                            }
+                          }
+                        },
+                        {
+                          "id": "572",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-boutonnet/",
+                            "name": "Cafet’ Boutonnet",
+                            "hours": "07:30 - 22:00",
+                            "gps_coord": {
+                              "X": 43.6234171,
+                              "Y": 3.8694057
+                            }
+                          }
+                        },
+                        {
+                          "id": "574",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-chimie/",
+                            "name": "Cafet’ Chimie",
+                            "hours": "07:30 - 16:00",
+                            "gps_coord": {
+                              "X": 43.6356351,
+                              "Y": 3.8663042
+                            }
+                          }
+                        },
+                        {
+                          "id": "576",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-fde/",
+                            "name": "Cafet’ FDE",
+                            "hours": "07:30 - 18:00",
+                            "gps_coord": {
+                              "X": 43.61986,
+                              "Y": 3.869241
+                            }
+                          }
+                        },
+                        {
+                          "id": "578",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-passerelle/",
+                            "name": "Cafet’ Passerelle",
+                            "hours": "07:30 - 17:00",
+                            "gps_coord": {
+                              "X": 43.636892,
+                              "Y": 3.854655
+                            }
+                          }
+                        },
+                        {
+                          "id": "580",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-richter/",
+                            "name": "Cafet’ Richter",
+                            "hours": "07:30 - 17:00",
+                            "gps_coord": {
+                              "X": 43.6029926,
+                              "Y": 3.8989596
+                            }
+                          }
+                        },
+                        {
+                          "id": "582",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-st-charles/",
+                            "name": "Cafet’ St Charles",
+                            "hours": "07:45 - 17:45",
+                            "gps_coord": {
+                              "X": 43.616229482595,
+                              "Y": 3.8738188974203
+                            }
+                          }
+                        },
+                        {
+                          "id": "583",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/cafet-staps/",
+                            "name": "Cafet’ Staps",
+                            "hours": "07:30 - 16:00",
+                            "gps_coord": {
+                              "X": 43.638849,
+                              "Y": 3.848205
+                            }
+                          }
+                        },
+                        {
+                          "id": "585",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/resto-u-richter/",
+                            "name": "Resto U’ Richter",
+                            "hours": "11:30 - 13:30",
+                            "gps_coord": {
+                              "X": 43.6029926,
+                              "Y": 3.8989596
+                            }
+                          }
+                        },
+                        {
+                          "id": "586",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/resto-u-triolet/",
+                            "name": "Resto U’ Triolet",
+                            "hours": "11:30 - 13:30",
+                            "gps_coord": {
+                              "X": 43.6308822,
+                              "Y": 3.8604739
+                            }
+                          }
+                        },
+                        {
+                          "id": "587",
+                          "type": "restaurant",
+                          "attributes": {
+                            "url": "https://www.crous-montpellier.fr/restaurant/resto-u-vert-bois/",
+                            "name": "Resto U’ Vert-Bois",
+                            "hours": "11:15 - 13:45",
+                            "gps_coord": {
+                              "X": 43.6349357,
+                              "Y": 3.8706288
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/v2/restaurants/{id}": {
+      "get": {
+        "summary": "Find restaurant by ID",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Restaurant"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "Success",
+                    "value": {
+                      "data": {
+                        "id": "570",
+                        "type": "restaurant",
+                        "attributes": {
+                          "url": "https://www.crous-montpellier.fr/restaurant/brasserie-boutonnet/",
+                          "name": "Brasserie Boutonnet",
+                          "hours": "07:30 - 22:00",
+                          "gps_coord": {
+                            "X": 43.623478,
+                            "Y": 3.869285
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/v2/restaurants/meals/{id}": {
+      "get": {
+        "summary": "Find a restaurant available meals",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Meal"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/up": {
+      "get": {
+        "summary": "Health endpoint",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Restaurant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of resource. Here it will always be restaurant"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL of the crous datasource"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the restaurant"
+              },
+              "hours": {
+                "type": "string",
+                "description": "Opening and closing hours"
+              },
+              "gps_coord": {
+                "type": "object",
+                "properties": {
+                  "X": {
+                    "type": "number"
+                  },
+                  "Y": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "X",
+                  "Y"
+                ],
+                "description": "GPS Coordinates"
+              }
+            },
+            "required": [
+              "url",
+              "name",
+              "hours",
+              "gps_coord"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "attributes"
+        ]
+      },
+      "Meal": {
+        "type": "object",
+        "properties": {
+          "idmeal": {
+            "type": "string",
+            "description": "ID for the meal"
+          },
+          "typemeal": {
+            "type": "string",
+            "description": "Type of current meal. Can be either \"petit-déjeuner\", \"déjeuner\" or \"dîner\""
+          },
+          "foodies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Where the meal is available within the restaurant"
+                },
+                "content": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of meals"
+                }
+              },
+              "required": [
+                "type",
+                "content"
+              ]
+            },
+            "description": "List of meals and where they are available"
+          }
+        },
+        "required": [
+          "idmeal",
+          "typemeal",
+          "foodies"
+        ]
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": []
+}
