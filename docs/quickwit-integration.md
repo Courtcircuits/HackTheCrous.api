@@ -16,7 +16,10 @@ development:
 
 Environment variables can override these settings:
 - `QUICKWIT_HOST`: Quickwit server hostname
-- `QUICKWIT_PORT`: Quickwit server port
+- `QUICKWIT_PORT`: Quickwit server port  
+- `QUICKWIT_INDEX_NAME`: Index name (defaults to "restaurants")
+- `QUICKWIT_TIMEOUT`: Request timeout in seconds
+- `QUICKWIT_INDEX_IN_TESTS`: Enable automatic indexing in test environment
 
 ## Setup
 
@@ -26,13 +29,20 @@ Environment variables can override these settings:
    docker run -p 7280:7280 quickwit/quickwit:latest
    ```
 
-2. **Create the search index:**
+2. **Setup the complete search infrastructure:**
    ```bash
-   bundle exec rake quickwit:create_index
+   bundle exec rake quickwit:setup
    ```
-
-3. **Index existing restaurant data:**
+   
+   Or step by step:
    ```bash
+   # Check Quickwit health
+   bundle exec rake quickwit:health
+   
+   # Create the search index
+   bundle exec rake quickwit:create_index
+   
+   # Index existing restaurant data
    bundle exec rake quickwit:index_restaurants
    ```
 

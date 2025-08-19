@@ -29,14 +29,20 @@ class QuickwitClient
         start_offset: options[:offset] || 0
       }
 
-      response = connection.get("/api/v1/#{config['index_name']}/search", search_params)
+      response = connection.get("/api/v1/#{config['index_name']}/search") do |req|
+        req.params = search_params
+        req.options.timeout = config['timeout'] || 30
+      end
       
       if response.success?
         response.body
       else
-        Rails.logger.error "Quickwit search failed: #{response.body}"
+        Rails.logger.error "Quickwit search failed: #{response.status} - #{response.body}"
         { "hits" => [], "num_hits" => 0 }
       end
+    rescue Faraday::Error => e
+      Rails.logger.error "Quickwit connection error: #{e.message}"
+      { "hits" => [], "num_hits" => 0 }
     rescue => e
       Rails.logger.error "Quickwit search error: #{e.message}"
       { "hits" => [], "num_hits" => 0 }
@@ -113,6 +119,22 @@ class QuickwitClient
       response.success?
     rescue => e
       Rails.logger.error "Quickwit index creation error: #{e.message}"
+      false
+    end
+
+    def health_check
+      response = connection.get("/health")
+      response.success? && response.body.to_s.include?("ready")
+    rescue => e
+      Rails.logger.error "Quickwit health check failed: #{e.message}"
+      false
+    end
+
+    def index_exists?
+      response = connection.get("/api/v1/indexes/#{config['index_name']}")
+      response.success?
+    rescue => e
+      Rails.logger.debug "Index check failed: #{e.message}"
       false
     end
   end

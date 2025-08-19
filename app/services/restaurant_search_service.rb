@@ -8,6 +8,18 @@ class RestaurantSearchService
   def perform
     return Restaurant.none if @query.blank?
 
+    begin
+      # Try Quickwit search first
+      search_with_quickwit
+    rescue => e
+      Rails.logger.warn "Quickwit search failed, falling back to SQL: #{e.message}"
+      fallback_search
+    end
+  end
+
+  private
+
+  def search_with_quickwit
     # Calculate pagination parameters for Quickwit
     limit = @per_page.to_i
     offset = (@page.to_i - 1) * limit
@@ -35,8 +47,6 @@ class RestaurantSearchService
 
     paginated_collection
   end
-
-  private
 
   # Fallback to original SQL search if Quickwit is unavailable
   def fallback_search

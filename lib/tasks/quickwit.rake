@@ -1,4 +1,22 @@
 namespace :quickwit do
+  desc "Check Quickwit health"
+  task health: :environment do
+    puts "Checking Quickwit health..."
+    
+    if QuickwitClient.health_check
+      puts "✓ Quickwit is healthy and responding"
+      
+      if QuickwitClient.index_exists?
+        puts "✓ Search index exists"
+      else
+        puts "⚠ Search index does not exist"
+      end
+    else
+      puts "✗ Quickwit is not available"
+      exit 1
+    end
+  end
+
   desc "Create Quickwit index"
   task create_index: :environment do
     puts "Creating Quickwit index..."
@@ -17,8 +35,11 @@ namespace :quickwit do
     puts "✓ Indexed #{count} restaurants in Quickwit"
   end
 
+  desc "Setup Quickwit (health check, create index, and index data)"
+  task setup: [:health, :create_index, :index_restaurants]
+
   desc "Reindex all restaurants in Quickwit"
-  task reindex: [:create_index, :index_restaurants]
+  task reindex: [:health, :create_index, :index_restaurants]
 
   desc "Test Quickwit search"
   task :test_search, [:query] => :environment do |t, args|

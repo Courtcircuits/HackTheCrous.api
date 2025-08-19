@@ -10,8 +10,20 @@ class QuickwitIndexingService
   def index_all_restaurants
     Rails.logger.info "Starting Quickwit indexing for all restaurants"
     
+    # Check if Quickwit is healthy
+    unless QuickwitClient.health_check
+      Rails.logger.error "Quickwit is not available, skipping indexing"
+      return 0
+    end
+    
     # Create the index if it doesn't exist
-    QuickwitClient.create_index
+    unless QuickwitClient.index_exists?
+      Rails.logger.info "Creating Quickwit index..."
+      unless QuickwitClient.create_index
+        Rails.logger.error "Failed to create Quickwit index"
+        return 0
+      end
+    end
     
     batch_size = 100
     indexed_count = 0
