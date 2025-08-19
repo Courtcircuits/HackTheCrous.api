@@ -31,6 +31,9 @@ gem "bootsnap", require: false
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# HTTP client for Quickwit integration
+gem "faraday"
+
 # logging
 gem "amazing_print"
 gem "rails_semantic_logger"

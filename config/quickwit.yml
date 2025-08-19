@@ -1,0 +1,16 @@
+default: &default
+  host: <%= ENV.fetch("QUICKWIT_HOST") { "localhost" } %>
+  port: <%= ENV.fetch("QUICKWIT_PORT") { 7280 } %>
+  index_name: "restaurants"
+  timeout: 30
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+  index_name: "restaurants_test"
+
+production:
+  <<: *default
+  host: <%= ENV.fetch("QUICKWIT_HOST") { "quickwit" } %>
