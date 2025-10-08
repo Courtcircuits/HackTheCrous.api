@@ -3,6 +3,7 @@ class RestaurantSchoolProximityService
     @restaurant = params[:id]
   end
 
+  # find schools the closest to a given restaurant
   def self.find_for_restaurant(restaurant_id)
     Restaurant.find_by_sql(<<-SQL, [ restaurant_id ])
       SELECT#{' '}

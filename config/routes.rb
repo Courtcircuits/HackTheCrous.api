@@ -8,6 +8,14 @@ Rails.application.routes.draw do
   mount Scalar::UI, at: "/docs"
 
   namespace :v2 do
+    post "mcp", to: "mcp#index"
+    get "mcp", to: "mcp#index"
+
+    namespace :schools do
+      root "school#index"
+      get ":id", to: "school#show"
+    end
+
     namespace :restaurants do
       root "restaurant#index"
 
@@ -16,6 +24,7 @@ Rails.application.routes.draw do
       get "schools/:id", to: "restaurant#schools"
       get ":id", to: "restaurant#show"
     end
+
   end
 
   # Defines the root path route ("/")

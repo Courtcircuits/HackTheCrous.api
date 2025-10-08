@@ -10,6 +10,7 @@ class RestaurantSerializer
 
 
   # has_many :suggestions_restaurant
+  # careful with this one, might make the API stateful
   cache_options enabled: true, cache_length: 12.hours
 
   def self.serialize(resources, options = {}) # override to comply with v1 specification

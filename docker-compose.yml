@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16.1-alpine3.18
+    image: docker.io/postgres:16.1-alpine3.18
     restart: always
     environment:
       POSTGRES_USER: postgres

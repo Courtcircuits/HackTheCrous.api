@@ -35,6 +35,7 @@ gem "rack-cors"
 gem "amazing_print"
 gem "rails_semantic_logger"
 
+gem "mcp"
 
 # tracing
 gem "opentelemetry-exporter-otlp"
